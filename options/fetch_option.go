@@ -38,3 +38,9 @@ func (o BaseFetchOptions) Offset() int {
 func (o BaseFetchOptions) Limit() int {
 	return o.GetPageSize()
 }
+
+type MessageFetchOptions struct {
+	BaseFetchOptions
+	RoomUniqueString   string `json:"room_unique_string" form:"room_unique_string" query:"room_unique_string"`
+	SenderUniqueString string `json:"sender_unique_string" form:"sender_unique_string" query:"sender_unique_string"`
+}
