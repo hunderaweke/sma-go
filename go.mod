@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/ProtonMail/gopenpgp/v3 v3.3.0
 	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	gorm.io/gorm v1.31.1
 )
 
