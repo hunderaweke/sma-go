@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/hunderaweke/sma-go/apperr"
 	"github.com/hunderaweke/sma-go/domain"
 	"github.com/hunderaweke/sma-go/options"
 	"gorm.io/gorm"
@@ -22,10 +22,10 @@ func (r *identityRepository) Create(in domain.Identity) (*domain.Identity, error
 	in.UniqueString = strings.TrimSpace(in.UniqueString)
 	in.PublicKey = strings.TrimSpace(in.PublicKey)
 	if in.UniqueString == "" {
-		return nil, errors.New("unique_string is required")
+		return nil, apperr.RequiredField("unique_string")
 	}
 	if in.PublicKey == "" {
-		return nil, errors.New("public_key is required")
+		return nil, apperr.RequiredField("public_key")
 	}
 
 	var exists int64
@@ -35,7 +35,7 @@ func (r *identityRepository) Create(in domain.Identity) (*domain.Identity, error
 		return nil, err
 	}
 	if exists > 0 {
-		return nil, errors.New("unique_string already exists")
+		return nil, apperr.UniqueConstraint("identity", "unique_string")
 	}
 
 	if err := r.db.Create(&in).Error; err != nil {
@@ -50,7 +50,7 @@ func (r *identityRepository) Delete(id uuid.UUID) error {
 		return res.Error
 	}
 	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return apperr.EntityNotFound("identity")
 	}
 	return nil
 }
@@ -58,10 +58,13 @@ func (r *identityRepository) Delete(id uuid.UUID) error {
 func (r *identityRepository) GetByUniqueString(uniqueString string) error {
 	uniqueString = strings.TrimSpace(uniqueString)
 	if uniqueString == "" {
-		return errors.New("unique_string is required")
+		return apperr.RequiredField("unique_string")
 	}
 	var ident domain.Identity
 	if err := r.db.Where("unique_string = ?", uniqueString).First(&ident).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return apperr.EntityNotFound("identity")
+		}
 		return err
 	}
 	return nil
