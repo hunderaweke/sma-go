@@ -75,25 +75,25 @@ func (r *messageRepository) Delete(id string) error {
 	return nil
 }
 
-func (r *messageRepository) GetByID(id string) error {
+func (r *messageRepository) GetByID(id string) (*domain.Message, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return domain.RequiredField("id")
+		return nil, domain.RequiredField("id")
 	}
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
-		return domain.InvalidField("id", "must be a valid uuid")
+		return nil, domain.InvalidField("id", "must be a valid uuid")
 	}
 
 	var m domain.Message
 	if err := r.db.First(&m, "id = ?", uid).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return domain.EntityNotFound("message")
+			return nil, domain.EntityNotFound("message")
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }
 
 func (r *messageRepository) GetAll(opts options.MessageFetchOptions) (domain.MultipleMessage, error) {

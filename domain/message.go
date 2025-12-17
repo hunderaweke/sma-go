@@ -21,14 +21,14 @@ type MultipleMessage struct {
 type MessageRepository interface {
 	Create(Message) (*Message, error)
 	Delete(id string) error
-	GetByID(id string) error
+	GetByID(id string) (*Message, error)
 	GetAll(opts options.MessageFetchOptions) (MultipleMessage, error)
 }
 
 type MessageUsecase interface {
 	Create(Message) (*Message, error)
-	Delete(id string)
-	GetByID(id string)
+	Delete(id string) error
+	GetByID(id string) (*Message, error)
 	GetAll(opts options.MessageFetchOptions) (MultipleMessage, Error)
 	GetByReceiverIdentity(recieverID string) (MultipleMessage, Error)
 }
