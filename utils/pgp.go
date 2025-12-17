@@ -6,11 +6,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
 )
 
-func Encrypt(msg string, key *crypto.Key, pgp *crypto.PGPHandle) (string, error) {
-	publicKey, err := key.ToPublic()
-	if err != nil {
-		return "", err
-	}
+func Encrypt(msg string, publicKey *crypto.Key, pgp *crypto.PGPHandle) (string, error) {
 	handle, err := pgp.Encryption().Recipient(publicKey).New()
 	if err != nil {
 		return "", err
