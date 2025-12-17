@@ -2,11 +2,10 @@ package domain
 
 import (
 	"github.com/hunderaweke/sma-go/options"
-	"gorm.io/gorm"
 )
 
 type Message struct {
-	gorm.Model
+	Model
 	FromUnique string   `gorm:"index;not null"`
 	ToUnique   string   `gorm:"index;not null"`
 	From       Identity `gorm:"foreignKey:FromUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
@@ -21,7 +20,15 @@ type MultipleMessage struct {
 
 type MessageRepository interface {
 	Create(Message) (*Message, error)
-	Delete(id uint) error
-	GetByID(id uint) error
+	Delete(id string) error
+	GetByID(id string) error
 	GetAll(opts options.MessageFetchOptions) (MultipleMessage, error)
+}
+
+type MessageUsecase interface {
+	Create(Message) (*Message, error)
+	Delete(id string)
+	GetByID(id string)
+	GetAll(opts options.MessageFetchOptions) (MultipleMessage, Error)
+	GetByReceiverIdentity(recieverID string) (MultipleMessage, Error)
 }

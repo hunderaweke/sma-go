@@ -3,6 +3,7 @@ package repository
 import (
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/hunderaweke/sma-go/domain"
 	"github.com/hunderaweke/sma-go/options"
 	"gorm.io/gorm"
@@ -53,8 +54,18 @@ func (r *messageRepository) Create(in domain.Message) (*domain.Message, error) {
 	return &in, nil
 }
 
-func (r *messageRepository) Delete(id uint) error {
-	res := r.db.Delete(&domain.Message{}, "id = ?", id)
+func (r *messageRepository) Delete(id string) error {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return domain.RequiredField("id")
+	}
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return domain.InvalidField("id", "must be a valid uuid")
+	}
+
+	res := r.db.Delete(&domain.Message{}, "id = ?", uid)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -64,9 +75,19 @@ func (r *messageRepository) Delete(id uint) error {
 	return nil
 }
 
-func (r *messageRepository) GetByID(id uint) error {
+func (r *messageRepository) GetByID(id string) error {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return domain.RequiredField("id")
+	}
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return domain.InvalidField("id", "must be a valid uuid")
+	}
+
 	var m domain.Message
-	if err := r.db.First(&m, id).Error; err != nil {
+	if err := r.db.First(&m, "id = ?", uid).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return domain.EntityNotFound("message")
 		}
