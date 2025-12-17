@@ -21,3 +21,9 @@ type IdentityRepository interface {
 	GetByUniqueString(uniqueString string) error
 	GetAll(opts options.BaseFetchOptions) (MultipleIdentity, error)
 }
+type IdentityUsecase interface {
+	Create(Identity) (*Identity, error)
+	Delete(id uuid.UUID) error
+	GetByUniqueString(uniqueString string) error
+	GetAll(opts options.BaseFetchOptions) (MultipleIdentity, error)
+}

@@ -44,3 +44,7 @@ type MessageFetchOptions struct {
 	RoomUniqueString   string `json:"room_unique_string" form:"room_unique_string" query:"room_unique_string"`
 	SenderUniqueString string `json:"sender_unique_string" form:"sender_unique_string" query:"sender_unique_string"`
 }
+type IdentityFetchOptions struct {
+	BaseFetchOptions
+	UniqueStrings []string `json:"unique_strings" form:"unique_strings" query:"unique_strings"`
+}
