@@ -1,9 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
-
-	"github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/hunderaweke/sma-go/config"
 )
 
@@ -33,47 +30,4 @@ func main() {
 	// 	}
 	// 	log.Println(decrypted)
 	config.GenerateSampleEnv()
-}
-
-func encrypt(msg string, key *crypto.Key, pgp *crypto.PGPHandle) (string, error) {
-	publicKey, err := key.ToPublic()
-	if err != nil {
-		return "", err
-	}
-	handle, err := pgp.Encryption().Recipient(publicKey).New()
-	if err != nil {
-		return "", err
-	}
-	pgpMessage, err := handle.Encrypt([]byte(msg))
-	if err != nil {
-		return "", err
-	}
-	bytes, err := pgpMessage.ArmorBytes()
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(bytes), nil
-}
-
-func decrypt(msg string, key *crypto.Key, pgp *crypto.PGPHandle) (string, error) {
-	raw, err := base64.StdEncoding.DecodeString(msg)
-	if err != nil {
-		return "", err
-	}
-	decHandle, err := pgp.Decryption().DecryptionKey(key).New()
-	if err != nil {
-		return "", err
-	}
-	decMsg, err := decHandle.Decrypt(raw, crypto.Armor)
-	if err != nil {
-		return "", err
-	}
-	return string(decMsg.Bytes()), nil
-}
-func generateKey(pgp *crypto.PGPHandle) (*crypto.Key, error) {
-	key, err := pgp.KeyGeneration().New().GenerateKey()
-	if err != nil {
-		return nil, err
-	}
-	return key, nil
 }
