@@ -48,3 +48,11 @@ func GenerateKey(pgp *crypto.PGPHandle) (*crypto.Key, error) {
 	}
 	return key, nil
 }
+
+func ParsePublicKey(armoredPubKey string) (*crypto.Key, error) {
+	pubKey, err := crypto.NewKeyFromArmored(armoredPubKey)
+	if err != nil {
+		return nil, err
+	}
+	return pubKey, nil
+}
