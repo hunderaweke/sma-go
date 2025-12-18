@@ -14,6 +14,7 @@ type identityRepository struct {
 }
 
 func NewIdentityRepository(db *gorm.DB) domain.IdentityRepository {
+	db.AutoMigrate(&domain.Identity{})
 	return &identityRepository{db: db}
 }
 

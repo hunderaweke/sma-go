@@ -14,6 +14,7 @@ type messageRepository struct {
 }
 
 func NewMessageRepository(db *gorm.DB) domain.MessageRepository {
+	db.AutoMigrate(&domain.Message{})
 	return &messageRepository{db: db}
 }
 
