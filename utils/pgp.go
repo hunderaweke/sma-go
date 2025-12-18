@@ -4,10 +4,22 @@ import (
 	"encoding/base64"
 
 	"github.com/ProtonMail/gopenpgp/v3/crypto"
+	"github.com/ProtonMail/gopenpgp/v3/profile"
 )
 
-func Encrypt(msg string, publicKey *crypto.Key, pgp *crypto.PGPHandle) (string, error) {
-	handle, err := pgp.Encryption().Recipient(publicKey).New()
+type PGPHandler struct {
+	pgp *crypto.PGPHandle
+}
+
+func NewPGPHandler() *PGPHandler {
+	pgp := crypto.PGPWithProfile(profile.RFC9580())
+	return &PGPHandler{
+		pgp: pgp,
+	}
+}
+
+func (h *PGPHandler) Encrypt(msg string, publicKey *crypto.Key) (string, error) {
+	handle, err := h.pgp.Encryption().Recipient(publicKey).New()
 	if err != nil {
 		return "", err
 	}
@@ -22,12 +34,12 @@ func Encrypt(msg string, publicKey *crypto.Key, pgp *crypto.PGPHandle) (string, 
 	return base64.StdEncoding.EncodeToString(bytes), nil
 }
 
-func Decrypt(msg string, key *crypto.Key, pgp *crypto.PGPHandle) (string, error) {
+func (h *PGPHandler) Decrypt(msg string, key *crypto.Key) (string, error) {
 	raw, err := base64.StdEncoding.DecodeString(msg)
 	if err != nil {
 		return "", err
 	}
-	decHandle, err := pgp.Decryption().DecryptionKey(key).New()
+	decHandle, err := h.pgp.Decryption().DecryptionKey(key).New()
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +49,7 @@ func Decrypt(msg string, key *crypto.Key, pgp *crypto.PGPHandle) (string, error)
 	}
 	return string(decMsg.Bytes()), nil
 }
-func GenerateKey(pgp *crypto.PGPHandle) (*crypto.Key, error) {
+func (h *PGPHandler) GenerateKey(pgp *crypto.PGPHandle) (*crypto.Key, error) {
 	key, err := pgp.KeyGeneration().New().GenerateKey()
 	if err != nil {
 		return nil, err
@@ -45,7 +57,7 @@ func GenerateKey(pgp *crypto.PGPHandle) (*crypto.Key, error) {
 	return key, nil
 }
 
-func ParsePublicKey(armoredPubKey string) (*crypto.Key, error) {
+func (h *PGPHandler) ParsePublicKey(armoredPubKey string) (*crypto.Key, error) {
 	pubKey, err := crypto.NewKeyFromArmored(armoredPubKey)
 	if err != nil {
 		return nil, err
