@@ -18,12 +18,12 @@ type MultipleIdentity struct {
 type IdentityRepository interface {
 	Create(Identity) (*Identity, error)
 	Delete(id uuid.UUID) error
-	GetByUniqueString(uniqueString string) error
+	GetByUniqueString(uniqueString string) (*Identity, error)
 	GetAll(opts options.BaseFetchOptions) (MultipleIdentity, error)
 }
 type IdentityUsecase interface {
 	Create(Identity) (*Identity, error)
 	Delete(id uuid.UUID) error
-	GetByUniqueString(uniqueString string) error
+	GetByUniqueString(uniqueString string) (*Identity, error)
 	GetAll(opts options.BaseFetchOptions) (MultipleIdentity, error)
 }
