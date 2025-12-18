@@ -8,8 +8,8 @@ type Message struct {
 	Model
 	FromUnique string   `gorm:"index;not null" json:"from_unique,omitempty"`
 	ToUnique   string   `gorm:"index;not null" json:"to_unique,omitempty"`
-	From       Identity `gorm:"foreignKey:FromUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-,omitempty"`
-	To         Identity `gorm:"foreignKey:ToUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-,omitempty"`
+	From       Identity `gorm:"foreignKey:FromUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
+	To         Identity `gorm:"foreignKey:ToUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
 	Text       string   `gorm:"type:text;not null" json:"text,omitempty"`
 }
 
