@@ -51,8 +51,19 @@ func (ic *IdentityController) Create(c *gin.Context) {
 		writeDomainError(c, err)
 		return
 	}
-
-	c.JSON(nethttp.StatusCreated, identity)
+	privateKey, err := key.Armor()
+	var response struct {
+		domain.Identity
+		PrivateKey string `json:"private_key,omitempty"`
+	}
+	response = struct {
+		domain.Identity
+		PrivateKey string `json:"private_key,omitempty"`
+	}{
+		Identity:   *identity,
+		PrivateKey: privateKey,
+	}
+	c.JSON(nethttp.StatusCreated, response)
 }
 
 func (ic *IdentityController) List(c *gin.Context) {
