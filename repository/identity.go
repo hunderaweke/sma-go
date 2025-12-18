@@ -54,19 +54,19 @@ func (r *identityRepository) Delete(id uuid.UUID) error {
 	return nil
 }
 
-func (r *identityRepository) GetByUniqueString(uniqueString string) error {
+func (r *identityRepository) GetByUniqueString(uniqueString string) (*domain.Identity, error) {
 	uniqueString = strings.TrimSpace(uniqueString)
 	if uniqueString == "" {
-		return domain.RequiredField("unique_string")
+		return nil, domain.RequiredField("unique_string")
 	}
 	var ident domain.Identity
 	if err := r.db.Where("unique_string = ?", uniqueString).First(&ident).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return domain.EntityNotFound("identity")
+			return nil, domain.EntityNotFound("identity")
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return &ident, nil
 }
 
 func (r *identityRepository) GetAll(opts options.BaseFetchOptions) (domain.MultipleIdentity, error) {

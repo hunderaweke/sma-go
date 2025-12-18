@@ -93,7 +93,7 @@ func (r *messageRepository) GetByID(id string) (*domain.Message, error) {
 		}
 		return nil, err
 	}
-	return nil, nil
+	return &m, nil
 }
 
 func (r *messageRepository) GetAll(opts options.MessageFetchOptions) (domain.MultipleMessage, error) {
