@@ -3,38 +3,37 @@ package main
 import (
 	"log"
 
-	"github.com/ProtonMail/gopenpgp/v3/crypto"
-	"github.com/ProtonMail/gopenpgp/v3/profile"
-	"github.com/hunderaweke/sma-go/config"
+	_ "github.com/hunderaweke/sma-go/config"
+	"github.com/hunderaweke/sma-go/database"
+	"github.com/hunderaweke/sma-go/domain"
+	"github.com/hunderaweke/sma-go/repository"
+	"github.com/hunderaweke/sma-go/server/router"
+	"github.com/hunderaweke/sma-go/usecases"
 	"github.com/hunderaweke/sma-go/utils"
 )
 
 func main() {
-	pgp := crypto.PGPWithProfile(profile.RFC9580())
-	key, err := utils.GenerateKey(pgp)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pubKey, _ := key.GetArmoredPublicKey()
+	// Ensure .env.sample exists for local setup convenience
 
-	publicKey, _ := utils.ParsePublicKey(pubKey)
-	msg := `
+	db, err := database.NewPostgresConn()
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
 
-	Lottery Quick Pick is perhaps the Internet's most popular with over 280 lotteries
-	Keno Quick Pick for the popular game played in many countries
-	Coin Flipper will give you heads or tails in many currencies
-	Dice Roller does exactly what it says on the tin
-	Playing Card Shuffler will draw cards from multiple shuffled decks
-	Birdie Fund Generator will create birdie holes for golf courses
-		`
-	encrpted, err := utils.Encrypt(msg, publicKey, pgp)
-	if err != nil {
-		log.Fatal(err)
+	if err := db.AutoMigrate(&domain.Identity{}, &domain.Message{}); err != nil {
+		log.Fatalf("failed to migrate database: %v", err)
 	}
-	decrypted, err := utils.Decrypt(encrpted, key, pgp)
-	if err != nil {
-		log.Fatal(err)
+
+	identityRepo := repository.NewIdentityRepository(db)
+	messageRepo := repository.NewMessageRepository(db)
+
+	identityUC := usecases.NewIdentityUsecase(identityRepo)
+	pgpHandler := utils.NewPGPHandler()
+	messageUC := usecases.NewMessageUsecase(messageRepo, identityUC, pgpHandler)
+
+	r := router.NewRouter(identityUC, messageUC)
+
+	if err := r.Run(); err != nil {
+		log.Fatalf("server stopped: %v", err)
 	}
-	log.Println(decrypted)
-	config.GenerateSampleEnv()
 }

@@ -26,7 +26,7 @@ func (u *identityUsecase) Delete(id uuid.UUID) error {
 	return u.repo.Delete(id)
 }
 
-func (u *identityUsecase) GetByUniqueString(uniqueString string) error {
+func (u *identityUsecase) GetByUniqueString(uniqueString string) (*domain.Identity, error) {
 	return u.repo.GetByUniqueString(strings.TrimSpace(uniqueString))
 }
 

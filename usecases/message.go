@@ -6,17 +6,33 @@ import (
 
 	"github.com/hunderaweke/sma-go/domain"
 	"github.com/hunderaweke/sma-go/options"
+	"github.com/hunderaweke/sma-go/utils"
 )
 
 type messageUsecase struct {
-	repo domain.MessageRepository
+	iu         domain.IdentityUsecase
+	pgpHandler *utils.PGPHandler
+	repo       domain.MessageRepository
 }
 
-func NewMessageUsecase(repo domain.MessageRepository) domain.MessageUsecase {
-	return &messageUsecase{repo: repo}
+func NewMessageUsecase(repo domain.MessageRepository, identityUC domain.IdentityUsecase, pgpHandler *utils.PGPHandler) domain.MessageUsecase {
+	return &messageUsecase{repo: repo, iu: identityUC, pgpHandler: pgpHandler}
 }
 
 func (u *messageUsecase) Create(m domain.Message) (*domain.Message, error) {
+	identity, err := u.iu.GetByUniqueString(m.FromUnique)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := u.pgpHandler.ParsePublicKey(identity.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+	encryptedMsg, err := u.pgpHandler.Encrypt(m.Text, publicKey)
+	if err != nil {
+		return nil, err
+	}
+	m.Text = encryptedMsg
 	return u.repo.Create(m)
 }
 
