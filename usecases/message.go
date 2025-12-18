@@ -20,7 +20,7 @@ func NewMessageUsecase(repo domain.MessageRepository, identityUC domain.Identity
 }
 
 func (u *messageUsecase) Create(m domain.Message) (*domain.Message, error) {
-	identity, err := u.iu.GetByUniqueString(m.FromUnique)
+	identity, err := u.iu.GetByUniqueString(m.ToUnique)
 	if err != nil {
 		return nil, err
 	}
