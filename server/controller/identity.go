@@ -7,27 +7,46 @@ import (
 	"github.com/google/uuid"
 	"github.com/hunderaweke/sma-go/domain"
 	"github.com/hunderaweke/sma-go/options"
+	"github.com/hunderaweke/sma-go/utils"
 )
 
 type IdentityController struct {
-	usecase domain.IdentityUsecase
+	pgpHandler *utils.PGPHandler
+	usecase    domain.IdentityUsecase
 }
 
-func NewIdentityController(uc domain.IdentityUsecase) *IdentityController {
-	return &IdentityController{usecase: uc}
+func NewIdentityController(uc domain.IdentityUsecase, handler *utils.PGPHandler) *IdentityController {
+	if handler == nil {
+		handler = utils.NewPGPHandler()
+	}
+	return &IdentityController{usecase: uc, pgpHandler: handler}
 }
 
 func (ic *IdentityController) Create(c *gin.Context) {
-	var req struct {
-		PublicKey    string `json:"public_key"`
-		UniqueString string `json:"unique_string"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(nethttp.StatusBadRequest, gin.H{"error": err.Error()})
+	if ic.pgpHandler == nil {
+		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "encryption not configured"})
 		return
 	}
 
-	identity, err := ic.usecase.Create(domain.Identity{PublicKey: req.PublicKey, UniqueString: req.UniqueString})
+	key, err := ic.pgpHandler.GenerateKey()
+	if err != nil {
+		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "failed to generate key"})
+		return
+	}
+
+	publicKey, err := key.GetArmoredPublicKey()
+	if err != nil {
+		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "failed to export public key"})
+		return
+	}
+
+	fp := key.GetFingerprint()
+	if len(fp) < 12 {
+		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "invalid key fingerprint"})
+		return
+	}
+	uniqueString := fp[:12]
+	identity, err := ic.usecase.Create(domain.Identity{PublicKey: publicKey, UniqueString: uniqueString})
 	if err != nil {
 		writeDomainError(c, err)
 		return
