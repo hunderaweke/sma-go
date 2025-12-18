@@ -49,8 +49,8 @@ func (h *PGPHandler) Decrypt(msg string, key *crypto.Key) (string, error) {
 	}
 	return string(decMsg.Bytes()), nil
 }
-func (h *PGPHandler) GenerateKey(pgp *crypto.PGPHandle) (*crypto.Key, error) {
-	key, err := pgp.KeyGeneration().New().GenerateKey()
+func (h *PGPHandler) GenerateKey() (*crypto.Key, error) {
+	key, err := h.pgp.KeyGeneration().New().GenerateKey()
 	if err != nil {
 		return nil, err
 	}
