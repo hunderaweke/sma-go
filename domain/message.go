@@ -6,16 +6,16 @@ import (
 
 type Message struct {
 	Model
-	FromUnique string   `gorm:"index;not null"`
-	ToUnique   string   `gorm:"index;not null"`
-	From       Identity `gorm:"foreignKey:FromUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
-	To         Identity `gorm:"foreignKey:ToUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
-	Text       string   `gorm:"type:text;not null"`
+	FromUnique string   `gorm:"index;not null" json:"from_unique,omitempty"`
+	ToUnique   string   `gorm:"index;not null" json:"to_unique,omitempty"`
+	From       Identity `gorm:"foreignKey:FromUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-,omitempty"`
+	To         Identity `gorm:"foreignKey:ToUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-,omitempty"`
+	Text       string   `gorm:"type:text;not null" json:"text,omitempty"`
 }
 
 type MultipleMessage struct {
-	Meta Pagination
-	Data []Message
+	Meta Pagination `json:"meta,omitempty"`
+	Data []Message  `json:"data,omitempty"`
 }
 
 type MessageRepository interface {
