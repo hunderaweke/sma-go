@@ -1,7 +1,7 @@
 package controller
 
 import (
-	nethttp "net/http"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,30 +23,36 @@ func NewIdentityController(uc domain.IdentityUsecase, handler *utils.PGPHandler)
 }
 
 func (ic *IdentityController) Create(c *gin.Context) {
+	var query struct {
+		IsPublic bool `form:"is_public"`
+	}
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 	if ic.pgpHandler == nil {
-		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "encryption not configured"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "encryption not configured"})
 		return
 	}
 
 	key, err := ic.pgpHandler.GenerateKey()
 	if err != nil {
-		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "failed to generate key"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate key"})
 		return
 	}
 
 	publicKey, err := key.GetArmoredPublicKey()
 	if err != nil {
-		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "failed to export public key"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to export public key"})
 		return
 	}
 
 	fp := key.GetFingerprint()
 	if len(fp) < 12 {
-		c.JSON(nethttp.StatusInternalServerError, gin.H{"error": "invalid key fingerprint"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid key fingerprint"})
 		return
 	}
 	uniqueString := fp[:12]
-	identity, err := ic.usecase.Create(domain.Identity{PublicKey: publicKey, UniqueString: uniqueString})
+	identity, err := ic.usecase.Create(domain.Identity{PublicKey: publicKey, UniqueString: uniqueString, IsPublic: query.IsPublic})
 	if err != nil {
 		writeDomainError(c, err)
 		return
@@ -54,22 +60,22 @@ func (ic *IdentityController) Create(c *gin.Context) {
 	privateKey, err := key.Armor()
 	var response struct {
 		domain.Identity
-		PrivateKey string `json:"private_key,omitempty"`
+		PrivateKey string `json:"private_key"`
 	}
 	response = struct {
 		domain.Identity
-		PrivateKey string `json:"private_key,omitempty"`
+		PrivateKey string `json:"private_key"`
 	}{
 		Identity:   *identity,
 		PrivateKey: privateKey,
 	}
-	c.JSON(nethttp.StatusCreated, response)
+	c.JSON(http.StatusCreated, response)
 }
 
 func (ic *IdentityController) List(c *gin.Context) {
 	var opts options.BaseFetchOptions
 	if err := c.ShouldBindQuery(&opts); err != nil {
-		c.JSON(nethttp.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -78,7 +84,7 @@ func (ic *IdentityController) List(c *gin.Context) {
 		writeDomainError(c, err)
 		return
 	}
-	c.JSON(nethttp.StatusOK, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func (ic *IdentityController) GetByUnique(c *gin.Context) {
@@ -88,14 +94,14 @@ func (ic *IdentityController) GetByUnique(c *gin.Context) {
 		writeDomainError(c, err)
 		return
 	}
-	c.JSON(nethttp.StatusOK, identity)
+	c.JSON(http.StatusOK, identity)
 }
 
 func (ic *IdentityController) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	uid, err := uuid.Parse(idStr)
 	if err != nil {
-		c.JSON(nethttp.StatusBadRequest, gin.H{"error": "invalid uuid"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uuid"})
 		return
 	}
 
@@ -103,5 +109,5 @@ func (ic *IdentityController) Delete(c *gin.Context) {
 		writeDomainError(c, err)
 		return
 	}
-	c.Status(nethttp.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
