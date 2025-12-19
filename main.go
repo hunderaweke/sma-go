@@ -14,7 +14,6 @@ import (
 
 func main() {
 	// Ensure .env.sample exists for local setup convenience
-
 	db, err := database.NewPostgresConn()
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
