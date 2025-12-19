@@ -7,8 +7,10 @@ import (
 
 type Identity struct {
 	Model
-	PublicKey    string `json:"public_key,omitempty" gorm:"not null"`
-	UniqueString string `json:"unique_string,omitempty" gorm:"not null;uniqueIndex"`
+	PublicKey        string `json:"public_key" gorm:"not null"`
+	UniqueString     string `json:"unique_string" gorm:"not null;uniqueIndex"`
+	IsPublic         bool   `json:"is_public"`
+	ProfanityAllowed bool   `json:"profanity_allowed"`
 }
 
 type MultipleIdentity struct {

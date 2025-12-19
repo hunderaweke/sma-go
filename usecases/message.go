@@ -24,6 +24,9 @@ func (u *messageUsecase) Create(m domain.Message) (*domain.Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	if identity.IsPublic == true {
+		return u.repo.Create(m)
+	}
 	publicKey, err := u.pgpHandler.ParsePublicKey(identity.PublicKey)
 	if err != nil {
 		return nil, err
