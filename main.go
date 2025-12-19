@@ -25,12 +25,14 @@ func main() {
 
 	identityRepo := repository.NewIdentityRepository(db)
 	messageRepo := repository.NewMessageRepository(db)
+	analyticsRepo := repository.NewAnalyticsRepository(db)
 
 	identityUC := usecases.NewIdentityUsecase(identityRepo)
 	pgpHandler := utils.NewPGPHandler()
 	messageUC := usecases.NewMessageUsecase(messageRepo, identityUC, pgpHandler)
+	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
 
-	r := router.NewRouter(identityUC, messageUC)
+	r := router.NewRouter(identityUC, messageUC, analyticsUC)
 
 	if err := r.Run(); err != nil {
 		log.Fatalf("server stopped: %v", err)
