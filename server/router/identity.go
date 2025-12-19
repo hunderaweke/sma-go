@@ -6,7 +6,7 @@ import (
 )
 
 func registerIdentityRoutes(r *gin.Engine, ctrl *controller.IdentityController) {
-	identityRoutes := r.Group("/identity")
+	identityRoutes := r.Group("/identities")
 	identityRoutes.POST("", ctrl.Create)
 	identityRoutes.GET("", ctrl.List)
 	identityRoutes.GET("/:unique", ctrl.GetByUnique)
