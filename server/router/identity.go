@@ -8,7 +8,5 @@ import (
 func registerIdentityRoutes(r *gin.Engine, ctrl *controller.IdentityController) {
 	identityRoutes := r.Group("/identities")
 	identityRoutes.POST("", ctrl.Create)
-	identityRoutes.GET("", ctrl.List)
 	identityRoutes.GET("/:unique", ctrl.GetByUnique)
-	identityRoutes.DELETE("/:id", ctrl.Delete)
 }
