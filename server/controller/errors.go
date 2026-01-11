@@ -1,46 +1,42 @@
 package controller
 
 import (
-	nethttp "net/http"
-
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hunderaweke/sma-go/domain"
 )
 
-func writeDomainError(c *gin.Context, err error) {
+func writeDomainError(c *fiber.Ctx, err error) error {
 	if err == nil {
-		c.Status(nethttp.StatusInternalServerError)
-		return
+		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
 	if de, ok := err.(*domain.Error); ok {
 		status := mapKindToStatus(de.Kind)
-		c.JSON(status, gin.H{
+		return c.Status(status).JSON(fiber.Map{
 			"error":  de.Msg,
 			"kind":   de.Kind,
 			"field":  de.Field,
 			"entity": de.Entity,
 		})
-		return
 	}
 
-	c.JSON(nethttp.StatusInternalServerError, gin.H{"error": err.Error()})
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 }
 
 func mapKindToStatus(k domain.Kind) int {
 	switch k {
 	case domain.Required, domain.Invalid:
-		return nethttp.StatusBadRequest
+		return fiber.StatusBadRequest
 	case domain.NotFound:
-		return nethttp.StatusNotFound
+		return fiber.StatusNotFound
 	case domain.AlreadyExists, domain.Conflict:
-		return nethttp.StatusConflict
+		return fiber.StatusConflict
 	case domain.Unauthorized:
-		return nethttp.StatusUnauthorized
+		return fiber.StatusUnauthorized
 	case domain.Forbidden:
-		return nethttp.StatusForbidden
+		return fiber.StatusForbidden
 	default:
-		return nethttp.StatusInternalServerError
+		return fiber.StatusInternalServerError
 	}
 }
 

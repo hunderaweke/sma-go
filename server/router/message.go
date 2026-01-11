@@ -1,13 +1,13 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hunderaweke/sma-go/server/controller"
 )
 
-func registerMessageRoutes(r *gin.Engine, ctrl *controller.MessageController) {
+func registerMessageRoutes(r *fiber.App, ctrl *controller.MessageController) {
 	messageRoutes := r.Group("/messages")
-	messageRoutes.POST("", ctrl.Create)
-	messageRoutes.GET("/:id", ctrl.GetByID)
-	messageRoutes.GET("/receiver/:unique", ctrl.GetByReceiver)
+	messageRoutes.Post("", ctrl.Create)
+	messageRoutes.Get("/:id", ctrl.GetByID)
+	messageRoutes.Get("/receiver/:unique", ctrl.GetByReceiver)
 }

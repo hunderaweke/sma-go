@@ -1,12 +1,13 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hunderaweke/sma-go/server/controller"
 )
 
-func registerIdentityRoutes(r *gin.Engine, ctrl *controller.IdentityController) {
+func registerIdentityRoutes(r *fiber.App, ctrl *controller.IdentityController) {
 	identityRoutes := r.Group("/identities")
-	identityRoutes.POST("", ctrl.Create)
-	identityRoutes.GET("/:unique", ctrl.GetByUnique)
+	identityRoutes.Post("", ctrl.Create)
+	identityRoutes.Get("", ctrl.GetAllIdentities)
+	identityRoutes.Get("/:unique", ctrl.GetByUnique)
 }

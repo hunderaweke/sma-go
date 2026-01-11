@@ -1,9 +1,7 @@
 package controller
 
 import (
-	nethttp "net/http"
-
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hunderaweke/sma-go/domain"
 )
 
@@ -15,11 +13,10 @@ func NewAnalyticsController(uc domain.AnalyticsUsecase) *AnalyticsController {
 	return &AnalyticsController{usecase: uc}
 }
 
-func (ac *AnalyticsController) Get(c *gin.Context) {
+func (ac *AnalyticsController) Get(c *fiber.Ctx) error {
 	res, err := ac.usecase.Get()
 	if err != nil {
-		writeDomainError(c, err)
-		return
+		return writeDomainError(c, err)
 	}
-	c.JSON(nethttp.StatusOK, res)
+	return c.Status(fiber.StatusOK).JSON(res)
 }

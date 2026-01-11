@@ -1,9 +1,7 @@
 package controller
 
 import (
-	nethttp "net/http"
-
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hunderaweke/sma-go/domain"
 	"github.com/hunderaweke/sma-go/options"
 )
@@ -16,64 +14,57 @@ func NewMessageController(uc domain.MessageUsecase) *MessageController {
 	return &MessageController{usecase: uc}
 }
 
-func (mc *MessageController) Create(c *gin.Context) {
+func (mc *MessageController) Create(c *fiber.Ctx) error {
 	var req struct {
 		FromUnique string `json:"from_unique"`
 		ToUnique   string `json:"to_unique"`
 		Text       string `json:"text"`
 	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(nethttp.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	msg, err := mc.usecase.Create(domain.Message{FromUnique: req.FromUnique, ToUnique: req.ToUnique, Text: req.Text})
 	if err != nil {
-		writeDomainError(c, err)
-		return
+		return writeDomainError(c, err)
 	}
-	c.JSON(nethttp.StatusCreated, msg)
+	return c.Status(fiber.StatusCreated).JSON(msg)
 }
 
-func (mc *MessageController) List(c *gin.Context) {
+func (mc *MessageController) List(c *fiber.Ctx) error {
 	var opts options.MessageFetchOptions
-	if err := c.ShouldBindQuery(&opts); err != nil {
-		c.JSON(nethttp.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.QueryParser(&opts); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	res, derr := mc.usecase.GetAll(opts)
 	if domainErr := domainErrorFromValue(derr); domainErr != nil {
-		writeDomainError(c, domainErr)
-		return
+		return writeDomainError(c, domainErr)
 	}
-	c.JSON(nethttp.StatusOK, res)
+	return c.Status(fiber.StatusOK).JSON(res)
 }
 
-func (mc *MessageController) GetByReceiver(c *gin.Context) {
-	receiver := c.Param("unique")
+func (mc *MessageController) GetByReceiver(c *fiber.Ctx) error {
+	receiver := c.Params("unique")
 	res, derr := mc.usecase.GetByReceiverIdentity(receiver)
 	if domainErr := domainErrorFromValue(derr); domainErr != nil {
-		writeDomainError(c, domainErr)
-		return
+		return writeDomainError(c, domainErr)
 	}
-	c.JSON(nethttp.StatusOK, res)
+	return c.Status(fiber.StatusOK).JSON(res)
 }
 
-func (mc *MessageController) GetByID(c *gin.Context) {
-	id := c.Param("id")
+func (mc *MessageController) GetByID(c *fiber.Ctx) error {
+	id := c.Params("id")
 	msg, err := mc.usecase.GetByID(id)
 	if err != nil {
-		writeDomainError(c, err)
-		return
+		return writeDomainError(c, err)
 	}
-	c.JSON(nethttp.StatusOK, msg)
+	return c.Status(fiber.StatusOK).JSON(msg)
 }
 
-func (mc *MessageController) Delete(c *gin.Context) {
-	id := c.Param("id")
+func (mc *MessageController) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
 	if err := mc.usecase.Delete(id); err != nil {
-		writeDomainError(c, err)
-		return
+		return writeDomainError(c, err)
 	}
-	c.Status(nethttp.StatusNoContent)
+	return c.SendStatus(fiber.StatusNoContent)
 }
