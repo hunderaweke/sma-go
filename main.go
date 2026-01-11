@@ -32,9 +32,9 @@ func main() {
 	messageUC := usecases.NewMessageUsecase(messageRepo, identityUC, pgpHandler)
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
 
-	r := router.NewRouter(identityUC, messageUC, analyticsUC)
+	app := router.NewRouter(identityUC, messageUC, analyticsUC)
 
-	if err := r.Run(); err != nil {
+	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("server stopped: %v", err)
 	}
 }

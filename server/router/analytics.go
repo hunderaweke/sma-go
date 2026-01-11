@@ -1,11 +1,11 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hunderaweke/sma-go/server/controller"
 )
 
-func registerAnalyticsRoutes(r *gin.Engine, ctrl *controller.AnalyticsController) {
+func registerAnalyticsRoutes(r *fiber.App, ctrl *controller.AnalyticsController) {
 	analyticsRoutes := r.Group("/analytics")
-	analyticsRoutes.GET("", ctrl.Get)
+	analyticsRoutes.Get("", ctrl.Get)
 }
