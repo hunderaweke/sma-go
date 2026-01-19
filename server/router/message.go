@@ -10,4 +10,5 @@ func registerMessageRoutes(r *fiber.App, ctrl *controller.MessageController) {
 	messageRoutes.Post("", ctrl.Create)
 	messageRoutes.Get("/:id", ctrl.GetByID)
 	messageRoutes.Get("/receiver/:unique", ctrl.GetByReceiver)
+	messageRoutes.Get("/receive/:uniqueString", ctrl.ReceiveMessages)
 }

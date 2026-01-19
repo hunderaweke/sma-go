@@ -33,7 +33,6 @@ func main() {
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
 
 	app := router.NewRouter(identityUC, messageUC, analyticsUC)
-
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("server stopped: %v", err)
 	}
