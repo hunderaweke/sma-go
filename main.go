@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	// Ensure .env.sample exists for local setup convenience
-	db, err := database.NewPostgresConn()
+	// Ensure .env exists for local setup convenience
+	db, err := database.NewDB(database.SQLite)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -31,7 +31,6 @@ func main() {
 	pgpHandler := utils.NewPGPHandler()
 	messageUC := usecases.NewMessageUsecase(messageRepo, identityUC, pgpHandler)
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
-
 	app := router.NewRouter(identityUC, messageUC, analyticsUC)
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("server stopped: %v", err)

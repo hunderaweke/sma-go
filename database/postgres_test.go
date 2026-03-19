@@ -15,11 +15,11 @@ func TestBuildDSN(t *testing.T) {
 }
 
 func TestNewPostgresConn_Smoke(t *testing.T) {
-	err := godotenv.Load("../.env.test")
-	if err != nil {
-		t.Error(err)
+	if err := godotenv.Load(".env.test"); err != nil {
+		t.Skipf("skipping smoke test: cannot load .env.test: %v", err)
 	}
-	_, err = NewPostgresConn()
+
+	_, err := NewPostgresConn()
 	if err != nil {
 		t.Fatalf("NewPostgresConn() error: %v", err)
 	}

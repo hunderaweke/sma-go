@@ -15,9 +15,9 @@ var (
 	DBHost     = os.Getenv("DB_HOST")
 )
 
-func GenerateSampleEnv() error {
+func GenerateSampleEnv(fileName string) error {
 	sampleEnv := map[string]string{
-		"DB_PORT":     "your_db_port",
+		"DB_PORT":     "1234",
 		"DB_NAME":     "your_db_name",
 		"DB_PASSWORD": "your_db_password",
 		"DB_USERNAME": "your_db_username",
@@ -27,7 +27,7 @@ func GenerateSampleEnv() error {
 	if err != nil {
 		return err
 	}
-	file, err := os.Create(".env.sample")
+	file, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
