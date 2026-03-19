@@ -13,6 +13,7 @@ var (
 	DBUsername = os.Getenv("DB_USERNAME")
 	DBPassword = os.Getenv("DB_PASSWORD")
 	DBHost     = os.Getenv("DB_HOST")
+	WebUrl     = os.Getenv("WEB_URL")
 )
 
 func GenerateSampleEnv(fileName string) error {

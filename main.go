@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/hunderaweke/sma-go/config"
 	_ "github.com/hunderaweke/sma-go/config"
 	"github.com/hunderaweke/sma-go/database"
 	"github.com/hunderaweke/sma-go/domain"
@@ -32,6 +34,10 @@ func main() {
 	messageUC := usecases.NewMessageUsecase(messageRepo, identityUC, pgpHandler)
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
 	app := router.NewRouter(identityUC, messageUC, analyticsUC)
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: config.WebUrl,
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("server stopped: %v", err)
 	}
