@@ -1,7 +1,7 @@
 package database
 
 import (
-	"fmt"
+	"github.com/hunderaweke/sma-go/domain"
 
 	"gorm.io/gorm"
 )
@@ -18,6 +18,6 @@ func NewDB(dbType int) (*gorm.DB, error) {
 	case Postgres:
 		return NewPostgresConn()
 	default:
-		return nil, fmt.Errorf("invalid db type")
+		return nil, domain.InternalError(nil, "invalid db type")
 	}
 }

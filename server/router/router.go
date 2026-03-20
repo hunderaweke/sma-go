@@ -9,7 +9,7 @@ import (
 	"github.com/hunderaweke/sma-go/utils"
 )
 
-func NewRouter(identityUC domain.IdentityUsecase, messageUC domain.MessageUsecase, analyticsUC domain.AnalyticsUsecase) *fiber.App {
+func NewRouter(identityUC domain.IdentityUsecase, messageUC domain.MessageUsecase, analyticsUC domain.AnalyticsUsecase, userUC domain.UserUsecase) *fiber.App {
 	app := fiber.New()
 
 	// Middleware
@@ -19,10 +19,12 @@ func NewRouter(identityUC domain.IdentityUsecase, messageUC domain.MessageUsecas
 	identityCtrl := controller.NewIdentityController(identityUC, utils.NewPGPHandler())
 	messageCtrl := controller.NewMessageController(messageUC)
 	analyticsCtrl := controller.NewAnalyticsController(analyticsUC)
+	userCtrl := controller.NewUserController(userUC)
 
 	registerIdentityRoutes(app, identityCtrl)
 	registerMessageRoutes(app, messageCtrl)
 	registerAnalyticsRoutes(app, analyticsCtrl)
+	registerUserRoutes(app, userCtrl)
 
 	return app
 }
