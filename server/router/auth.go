@@ -8,6 +8,7 @@ import (
 
 func registerUserRoutes(r *fiber.App, ctrl *controller.UserController) {
 	userRoutes := r.Group("/auth")
+	userRoutes.Post("/logout", ctrl.Logout)
 	userRoutes.Get("/me", middlewares.JWTMiddleware, ctrl.GetMe)
 	userRoutes.Get("/:provider", ctrl.SignUpOrLogIn)
 	userRoutes.Get("/:provider/callback", ctrl.AuthCallback)
