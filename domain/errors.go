@@ -86,3 +86,6 @@ func IsKind(err error, k Kind) bool {
 func IsNotFound(err error) bool      { return IsKind(err, NotFound) }
 func IsAlreadyExists(err error) bool { return IsKind(err, AlreadyExists) }
 func IsInvalid(err error) bool       { return IsKind(err, Invalid) || IsKind(err, Required) }
+func NotFoundError(entity string) error {
+	return &Error{Kind: NotFound, Entity: entity, Msg: entity + " not found"}
+}

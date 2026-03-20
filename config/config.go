@@ -8,12 +8,16 @@ import (
 )
 
 var (
-	DBPort     = os.Getenv("DB_PORT")
-	DBName     = os.Getenv("DB_NAME")
-	DBUsername = os.Getenv("DB_USERNAME")
-	DBPassword = os.Getenv("DB_PASSWORD")
-	DBHost     = os.Getenv("DB_HOST")
-	WebUrl     = os.Getenv("WEB_URL")
+	DBPort             = os.Getenv("DB_PORT")
+	DBName             = os.Getenv("DB_NAME")
+	DBUsername         = os.Getenv("DB_USERNAME")
+	DBPassword         = os.Getenv("DB_PASSWORD")
+	DBHost             = os.Getenv("DB_HOST")
+	WebUrl             = os.Getenv("WEB_URL")
+	GitHubClientID     = os.Getenv("GITHUB_CLIENT_ID")
+	GitHubClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
+	GoogleClientID     = os.Getenv("GOOGLE_CLIENT_ID")
+	GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
 )
 
 func GenerateSampleEnv(fileName string) error {
