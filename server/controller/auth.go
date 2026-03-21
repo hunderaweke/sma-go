@@ -26,14 +26,14 @@ func (c *AuthController) configureAuth() {
 		github.New(
 			config.GitHubClientID,
 			config.GitHubClientSecret,
-			"http://localhost:3000/auth/github/callback",
+			config.GitHubCallbackURL,
 			"user:email",
 			"user:profile",
 		),
 		google.New(
 			config.GoogleClientID,
 			config.GoogleClientSecret,
-			"http://localhost:3000/auth/google/callback",
+			config.GoogleCallbackURL,
 			"openid",
 			"email",
 			"profile",
