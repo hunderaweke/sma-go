@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -63,11 +64,11 @@ func (uc *UserController) SignUpOrLogIn(c *fiber.Ctx) error {
 func (uc *UserController) AuthCallback(c *fiber.Ctx) error {
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Authentication failed"})
+		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusPermanentRedirect)
 	}
 	dbUser, err := uc.usecase.GetByEmail(user.Email)
 	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Email already registered with a different provider"})
+		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusPermanentRedirect)
 	} else if dbUser == nil {
 		dbUser, err = uc.usecase.Create(domain.User{
 			Name:           user.Name,
