@@ -168,7 +168,6 @@ func (r *userRepository) GetByEmail(email string) (*domain.User, error) {
 			return nil, domain.EntityNotFound("user")
 		}
 		return nil, err
-
 	}
 	return &user, nil
 }

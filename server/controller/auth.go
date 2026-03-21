@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -63,37 +64,35 @@ func (uc *UserController) SignUpOrLogIn(c *fiber.Ctx) error {
 func (uc *UserController) AuthCallback(c *fiber.Ctx) error {
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Authentication failed"})
+		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusPermanentRedirect)
 	}
-	prevUser, err := uc.usecase.GetByEmail(user.Email)
-	if err == nil {
-		if prevUser.Provider != user.Provider || prevUser.ProviderUserID != user.UserID {
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Email already registered with a different provider"})
+	dbUser, err := uc.usecase.GetByEmail(user.Email)
+	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
+		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusPermanentRedirect)
+	} else if dbUser == nil {
+		dbUser, err = uc.usecase.Create(domain.User{
+			Name:           user.Name,
+			Provider:       user.Provider,
+			ProviderUserID: user.UserID,
+			Email:          user.Email,
+		})
+		if err != nil {
+			return writeDomainError(c, err)
 		}
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User already exists, logged in successfully"})
-	}
-	dbUser, err := uc.usecase.Create(domain.User{
-		Name:           user.Name,
-		Provider:       user.Provider,
-		ProviderUserID: user.UserID,
-		Email:          user.Email,
-	})
-	if err != nil {
-		return writeDomainError(c, err)
 	}
 	accessToken, err := services.CreateAccessToken(dbUser.ID.String(), dbUser.Email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token"})
 	}
-	refreshToken, err := services.CreateRefreshToken(dbUser.ID.String())
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create refresh token"})
-	}
-	return c.JSON(fiber.Map{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
-		"user":          dbUser,
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(15 * time.Hour),
 	})
+	return c.Redirect(config.WebUrl, fiber.StatusPermanentRedirect)
 }
 
 func (uc *UserController) GetMe(c *fiber.Ctx) error {
@@ -106,4 +105,24 @@ func (uc *UserController) GetMe(c *fiber.Ctx) error {
 		return writeDomainError(c, err)
 	}
 	return c.Status(fiber.StatusOK).JSON(user)
+}
+func (uc *UserController) Logout(c *fiber.Ctx) error {
+	session, err := goth_fiber.SessionStore.Get(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get session"})
+	}
+	if err := session.Destroy(); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to destroy session"})
+	}
+	c.ClearCookie("session_id")
+	c.ClearCookie("access_token")
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Lax",
+		Expires:  time.Now().Add(-time.Hour),
+	})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logged out successfully"})
 }
