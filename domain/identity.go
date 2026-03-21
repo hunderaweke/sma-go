@@ -2,15 +2,11 @@ package domain
 
 import (
 	"github.com/google/uuid"
-	"github.com/hunderaweke/sma-go/options"
 )
 
 type Identity struct {
 	Model
-	PublicKey        string `json:"public_key" gorm:"not null"`
-	UniqueString     string `json:"unique_string" gorm:"not null;uniqueIndex"`
-	IsPublic         bool   `json:"is_public"`
-	ProfanityAllowed bool   `json:"profanity_allowed"`
+	UniqueString string `json:"unique_string" gorm:"not null;uniqueIndex"`
 }
 
 type MultipleIdentity struct {
@@ -18,14 +14,12 @@ type MultipleIdentity struct {
 	Data []Identity `json:"data,omitempty"`
 }
 type IdentityRepository interface {
-	Create(Identity) (*Identity, error)
+	Create() (*Identity, error)
 	Delete(id uuid.UUID) error
 	GetByUniqueString(uniqueString string) (*Identity, error)
-	GetAll(opts options.BaseFetchOptions) (MultipleIdentity, error)
 }
 type IdentityUsecase interface {
-	Create(Identity) (*Identity, error)
+	Create() (*Identity, error)
 	Delete(id uuid.UUID) error
 	GetByUniqueString(uniqueString string) (*Identity, error)
-	GetAll(opts options.BaseFetchOptions) (MultipleIdentity, error)
 }

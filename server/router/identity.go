@@ -8,6 +8,5 @@ import (
 func registerIdentityRoutes(r *fiber.App, ctrl *controller.IdentityController) {
 	identityRoutes := r.Group("/identities")
 	identityRoutes.Post("", ctrl.Create)
-	identityRoutes.Get("", ctrl.GetAllIdentities)
 	identityRoutes.Get("/:unique", ctrl.GetByUnique)
 }

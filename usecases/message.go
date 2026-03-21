@@ -20,22 +20,6 @@ func NewMessageUsecase(repo domain.MessageRepository, identityUC domain.Identity
 }
 
 func (u *messageUsecase) Create(m domain.Message) (*domain.Message, error) {
-	identity, err := u.iu.GetByUniqueString(m.ToUnique)
-	if err != nil {
-		return nil, err
-	}
-	if identity.IsPublic == true {
-		return u.repo.Create(m)
-	}
-	publicKey, err := u.pgpHandler.ParsePublicKey(identity.PublicKey)
-	if err != nil {
-		return nil, err
-	}
-	encryptedMsg, err := u.pgpHandler.Encrypt(m.Text, publicKey)
-	if err != nil {
-		return nil, err
-	}
-	m.Text = encryptedMsg
 	return u.repo.Create(m)
 }
 
