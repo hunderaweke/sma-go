@@ -103,11 +103,11 @@ func (r *messageRepository) GetAll(opts options.MessageFetchOptions) (domain.Mul
 	)
 
 	base := r.db.Model(&domain.Message{})
-	if s := strings.TrimSpace(opts.SenderUniqueString); s != "" {
-		base = base.Where("from_unique = ?", s)
-	}
 	if rcv := strings.TrimSpace(opts.RoomUniqueString); rcv != "" {
 		base = base.Joins("JOIN rooms ON rooms.id = messages.room_id").Where("rooms.unique_string = ?", rcv)
+	}
+	if s := strings.TrimSpace(opts.SenderUniqueString); s != "" {
+		base = base.Where("from_unique = ?", s)
 	}
 
 	if err := base.Count(&total).Error; err != nil {

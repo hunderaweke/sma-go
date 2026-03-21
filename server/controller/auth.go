@@ -26,14 +26,14 @@ func (c *AuthController) configureAuth() {
 		github.New(
 			config.GitHubClientID,
 			config.GitHubClientSecret,
-			"http://localhost:3000/auth/github/callback",
+			config.GitHubCallbackURL,
 			"user:email",
 			"user:profile",
 		),
 		google.New(
 			config.GoogleClientID,
 			config.GoogleClientSecret,
-			"http://localhost:3000/auth/google/callback",
+			config.GoogleCallbackURL,
 			"openid",
 			"email",
 			"profile",
@@ -89,7 +89,7 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    accessToken,
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 		Expires:  time.Now().Add(15 * time.Hour),
 	})
@@ -121,7 +121,7 @@ func (uc *AuthController) Logout(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    "",
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 		Expires:  time.Now().Add(-time.Hour),
 	})

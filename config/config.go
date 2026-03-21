@@ -18,6 +18,8 @@ var (
 	GitHubClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
 	GoogleClientID     = os.Getenv("GOOGLE_CLIENT_ID")
 	GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	GoogleCallbackURL  = os.Getenv("GOOGLE_CALLBACK_URL")
+	GitHubCallbackURL  = os.Getenv("GITHUB_CALLBACK_URL")
 )
 
 func GenerateSampleEnv(fileName string) error {

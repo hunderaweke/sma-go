@@ -47,15 +47,10 @@ func (r *roomRepository) Create(in domain.Room) (*domain.Room, error) {
 func (r *roomRepository) Delete(id string) error {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return domain.RequiredField("id")
+		return domain.RequiredField("unique_string")
 	}
 
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return domain.InvalidField("id", "must be a valid uuid")
-	}
-
-	res := r.db.Delete(&domain.Room{}, "id = ?", uid)
+	res := r.db.Delete(&domain.Room{}, "unique_string = ?", id)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -66,24 +61,7 @@ func (r *roomRepository) Delete(id string) error {
 }
 
 func (r *roomRepository) GetByID(id string) (*domain.Room, error) {
-	id = strings.TrimSpace(id)
-	if id == "" {
-		return nil, domain.RequiredField("id")
-	}
-
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return nil, domain.InvalidField("id", "must be a valid uuid")
-	}
-
-	var room domain.Room
-	if err := r.db.First(&room, "id = ?", uid).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, domain.EntityNotFound("room")
-		}
-		return nil, err
-	}
-	return &room, nil
+	return r.GetByUniqueString(id)
 }
 
 func (r *roomRepository) GetByUniqueString(uniqueString string) (*domain.Room, error) {
