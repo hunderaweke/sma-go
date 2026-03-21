@@ -15,25 +15,32 @@ import (
 
 type MessageController struct {
 	messageChannels sync.Map
-	usecase         domain.MessageUsecase
+	messageUsecase  domain.MessageUsecase
+	roomUsecase     domain.RoomUsecase
+	userUsecase     domain.UserUsecase
 }
 
-func NewMessageController(uc domain.MessageUsecase) *MessageController {
-	return &MessageController{usecase: uc, messageChannels: sync.Map{}}
+func NewMessageController(messageUC domain.MessageUsecase, roomUC domain.RoomUsecase, userUC domain.UserUsecase) *MessageController {
+	return &MessageController{messageUsecase: messageUC, roomUsecase: roomUC, userUsecase: userUC, messageChannels: sync.Map{}}
 }
 
-func (mc *MessageController) addClient(uniqueString string) chan string {
+type createMessage struct {
+	FromUnique string `json:"from_unique"`
+	Text       string `json:"text"`
+}
+
+func (mc *MessageController) addClient(roomUniqueString string) chan string {
 	ch := make(chan string)
-	mc.messageChannels.Store(uniqueString, ch)
+	mc.messageChannels.Store(roomUniqueString, ch)
 	return ch
 }
 
-func (mc *MessageController) removeClient(uniqueString string) {
-	mc.messageChannels.Delete(uniqueString)
+func (mc *MessageController) removeClient(roomUniqueString string) {
+	mc.messageChannels.Delete(roomUniqueString)
 }
 
-func (mc *MessageController) sendToClient(uniqueString, msg string) {
-	value, ok := mc.messageChannels.Load(uniqueString)
+func (mc *MessageController) sendToClient(roomUniqueString, msg string) {
+	value, ok := mc.messageChannels.Load(roomUniqueString)
 	if !ok {
 		return
 	}
@@ -44,70 +51,89 @@ func (mc *MessageController) sendToClient(uniqueString, msg string) {
 	}
 }
 
-func (mc *MessageController) Create(c *fiber.Ctx) error {
-	var req struct {
-		FromUnique string `json:"from_unique"`
-		ToUnique   string `json:"to_unique"`
-		Text       string `json:"text"`
-	}
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	msg, err := mc.usecase.Create(domain.Message{FromUnique: req.FromUnique, ToUnique: req.ToUnique, Text: req.Text})
+func (mc *MessageController) CreateInRoom(c *fiber.Ctx) error {
+	room, err := mc.authorizedRoom(c)
 	if err != nil {
 		return writeDomainError(c, err)
 	}
-	mc.sendToClient(req.ToUnique, msg.Text)
+
+	var req createMessage
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	msg, err := mc.messageUsecase.Create(domain.Message{RoomId: room.ID, FromUnique: req.FromUnique, Text: req.Text})
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+	mc.sendToClient(room.UniqueString, msg.Text)
 	return c.Status(fiber.StatusCreated).JSON(msg)
 }
 
-func (mc *MessageController) List(c *fiber.Ctx) error {
+func (mc *MessageController) ListInRoom(c *fiber.Ctx) error {
+	room, err := mc.authorizedRoom(c)
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+
 	var opts options.MessageFetchOptions
 	if err := c.QueryParser(&opts); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	opts.RoomUniqueString = room.UniqueString
 
-	res, derr := mc.usecase.GetAll(opts)
-	if domainErr := domainErrorFromValue(derr); domainErr != nil {
-		return writeDomainError(c, domainErr)
-	}
-	return c.Status(fiber.StatusOK).JSON(res)
-}
-
-func (mc *MessageController) GetByReceiver(c *fiber.Ctx) error {
-	receiver := c.Params("unique")
-	res, derr := mc.usecase.GetByReceiverIdentity(receiver)
-	if domainErr := domainErrorFromValue(derr); domainErr != nil {
-		return writeDomainError(c, domainErr)
-	}
-	return c.Status(fiber.StatusOK).JSON(res)
-}
-
-func (mc *MessageController) GetByID(c *fiber.Ctx) error {
-	id := c.Params("id")
-	msg, err := mc.usecase.GetByID(id)
+	res, err := mc.messageUsecase.GetAll(opts)
 	if err != nil {
 		return writeDomainError(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(res)
+}
+
+func (mc *MessageController) GetByIDInRoom(c *fiber.Ctx) error {
+	room, err := mc.authorizedRoom(c)
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+	msg, err := mc.messageUsecase.GetByID(c.Params("id"))
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+	if msg.RoomId != room.ID {
+		return writeDomainError(c, domain.New(domain.Forbidden, "you do not own this room"))
 	}
 	return c.Status(fiber.StatusOK).JSON(msg)
 }
 
-func (mc *MessageController) Delete(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if err := mc.usecase.Delete(id); err != nil {
+func (mc *MessageController) DeleteInRoom(c *fiber.Ctx) error {
+	room, err := mc.authorizedRoom(c)
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+	msg, err := mc.messageUsecase.GetByID(c.Params("id"))
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+	if msg.RoomId != room.ID {
+		return writeDomainError(c, domain.New(domain.Forbidden, "you do not own this room"))
+	}
+	if err := mc.messageUsecase.Delete(c.Params("id")); err != nil {
 		return writeDomainError(c, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (mc *MessageController) ReceiveMessages(c *fiber.Ctx) error {
-	uniqueString := c.Params("uniqueString", "")
+	room, err := mc.authorizedRoom(c)
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+
 	c.Set("Content-Type", "text/event-stream")
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
 	c.Status(fiber.StatusOK).Context().SetBodyStreamWriter(fasthttp.StreamWriter(func(w *bufio.Writer) {
-		ch := mc.addClient(uniqueString)
-		defer mc.removeClient(uniqueString)
+		ch := mc.addClient(room.UniqueString)
+		defer mc.removeClient(room.UniqueString)
 		ticker := time.NewTicker(15 * time.Second)
 		defer ticker.Stop()
 		for {
@@ -134,4 +160,27 @@ func (mc *MessageController) ReceiveMessages(c *fiber.Ctx) error {
 		}
 	}))
 	return nil
+}
+
+func (mc *MessageController) authorizedRoom(c *fiber.Ctx) (*domain.Room, error) {
+	room, err := mc.roomUsecase.GetByUniqueString(c.Params("uniqueString"))
+	if err != nil {
+		return nil, err
+	}
+	owner, err := mc.currentUser(c)
+	if err != nil {
+		return nil, err
+	}
+	if room.OwnerID != owner.ID {
+		return nil, domain.New(domain.Forbidden, "you do not own this room")
+	}
+	return room, nil
+}
+
+func (mc *MessageController) currentUser(c *fiber.Ctx) (*domain.User, error) {
+	userID, _ := c.Locals("user_id").(string)
+	if userID == "" {
+		return nil, domain.New(domain.Unauthorized, "missing authenticated user")
+	}
+	return mc.userUsecase.GetById(userID)
 }

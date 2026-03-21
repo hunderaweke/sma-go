@@ -11,7 +11,6 @@ import (
 	"github.com/hunderaweke/sma-go/repository"
 	"github.com/hunderaweke/sma-go/server/router"
 	"github.com/hunderaweke/sma-go/usecases"
-	"github.com/hunderaweke/sma-go/utils"
 )
 
 func main() {
@@ -32,8 +31,7 @@ func main() {
 	analyticsRepo := repository.NewAnalyticsRepository(db)
 
 	identityUC := usecases.NewIdentityUsecase(identityRepo)
-	pgpHandler := utils.NewPGPHandler()
-	messageUC := usecases.NewMessageUsecase(messageRepo, identityUC, pgpHandler)
+	messageUC := usecases.NewMessageUsecase(messageRepo)
 	userUC := usecases.NewUserUsecase(userRepo)
 	roomUC := usecases.NewRoomUsecase(roomRepo)
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)

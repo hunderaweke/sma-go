@@ -1,16 +1,16 @@
 package domain
 
 import (
+	"github.com/google/uuid"
 	"github.com/hunderaweke/sma-go/options"
 )
 
 type Message struct {
 	Model
-	FromUnique string   `gorm:"index;not null" json:"from"`
-	ToUnique   string   `gorm:"index;not null" json:"to"`
-	From       Identity `gorm:"foreignKey:FromUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
-	To         Identity `gorm:"foreignKey:ToUnique;references:UniqueString;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-"`
-	Text       string   `gorm:"type:text;not null" json:"text,omitempty"`
+	RoomId     uuid.UUID `json:"room_id,omitempty" gorm:"not null"`
+	Room       Room      `gorm:"foreignKey:RoomId;constraint:OnUpdate:SET NULL,OnDelete:SET NULL" json:"-"`
+	FromUnique string    `gorm:"index;not null" json:"from_unique"`
+	Text       string    `gorm:"type:text;not null" json:"text,omitempty"`
 }
 
 type MultipleMessage struct {
@@ -29,6 +29,5 @@ type MessageUsecase interface {
 	Create(Message) (*Message, error)
 	Delete(id string) error
 	GetByID(id string) (*Message, error)
-	GetAll(opts options.MessageFetchOptions) (MultipleMessage, Error)
-	GetByReceiverIdentity(recieverID string) (MultipleMessage, Error)
+	GetAll(opts options.MessageFetchOptions) (MultipleMessage, error)
 }
