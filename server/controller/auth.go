@@ -17,11 +17,11 @@ import (
 	"github.com/shareed2k/goth_fiber"
 )
 
-type UserController struct {
+type AuthController struct {
 	usecase domain.UserUsecase
 }
 
-func (c *UserController) configureAuth() {
+func (c *AuthController) configureAuth() {
 	goth.UseProviders(
 		github.New(
 			config.GitHubClientID,
@@ -51,25 +51,26 @@ func (c *UserController) configureAuth() {
 	goth_fiber.SessionStore = store
 }
 
-func NewUserController(uc domain.UserUsecase) *UserController {
-	ctrl := &UserController{usecase: uc}
+func NewAuthController(uc domain.UserUsecase) *AuthController {
+	ctrl := &AuthController{usecase: uc}
 	ctrl.configureAuth()
 	return ctrl
 }
 
-func (uc *UserController) SignUpOrLogIn(c *fiber.Ctx) error {
+func (uc *AuthController) SignUpOrLogIn(c *fiber.Ctx) error {
 	return goth_fiber.BeginAuthHandler(c)
 }
 
-func (uc *UserController) AuthCallback(c *fiber.Ctx) error {
+func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
-		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusPermanentRedirect)
+		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusExpectationFailed)
 	}
 	dbUser, err := uc.usecase.GetByEmail(user.Email)
 	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
-		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusPermanentRedirect)
-	} else if dbUser == nil {
+		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusConflict)
+	}
+	if dbUser == nil {
 		dbUser, err = uc.usecase.Create(domain.User{
 			Name:           user.Name,
 			Provider:       user.Provider,
@@ -92,10 +93,10 @@ func (uc *UserController) AuthCallback(c *fiber.Ctx) error {
 		SameSite: "Lax",
 		Expires:  time.Now().Add(15 * time.Hour),
 	})
-	return c.Redirect(config.WebUrl, fiber.StatusPermanentRedirect)
+	return c.Redirect(config.WebUrl, fiber.StatusFound)
 }
 
-func (uc *UserController) GetMe(c *fiber.Ctx) error {
+func (uc *AuthController) GetMe(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
@@ -106,7 +107,7 @@ func (uc *UserController) GetMe(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(user)
 }
-func (uc *UserController) Logout(c *fiber.Ctx) error {
+func (uc *AuthController) Logout(c *fiber.Ctx) error {
 	session, err := goth_fiber.SessionStore.Get(c)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get session"})

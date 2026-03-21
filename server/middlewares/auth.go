@@ -12,8 +12,8 @@ func JWTMiddleware(c *fiber.Ctx) error {
 	tokenString := ""
 	if header != "" && strings.HasPrefix(header, "Bearer ") {
 		tokenString = header[len("Bearer "):]
-	} else {
-		tokenString = c.Cookies("access_token", "")
+	} else if header != "" {
+		tokenString = header
 	}
 	if tokenString == "" {
 		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header"})

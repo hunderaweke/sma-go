@@ -6,7 +6,7 @@ import (
 	"github.com/hunderaweke/sma-go/server/middlewares"
 )
 
-func registerUserRoutes(r *fiber.App, ctrl *controller.UserController) {
+func registerAuthRoutes(r *fiber.App, ctrl *controller.AuthController) {
 	userRoutes := r.Group("/auth")
 	userRoutes.Post("/logout", ctrl.Logout)
 	userRoutes.Get("/me", middlewares.JWTMiddleware, ctrl.GetMe)
