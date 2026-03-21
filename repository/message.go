@@ -19,30 +19,29 @@ func NewMessageRepository(db *gorm.DB) domain.MessageRepository {
 }
 
 func (r *messageRepository) Create(in domain.Message) (*domain.Message, error) {
+	if in.RoomId == uuid.Nil {
+		return nil, domain.RequiredField("room_id")
+	}
 	in.FromUnique = strings.TrimSpace(in.FromUnique)
-	in.ToUnique = strings.TrimSpace(in.ToUnique)
 	in.Text = strings.TrimSpace(in.Text)
 
 	if in.FromUnique == "" {
 		return nil, domain.RequiredField("from_unique")
 	}
-	if in.ToUnique == "" {
-		return nil, domain.RequiredField("to_unique")
-	}
 	if in.Text == "" {
 		return nil, domain.RequiredField("text")
 	}
 
-	var sender domain.Identity
-	if err := r.db.Where("unique_string = ?", in.FromUnique).First(&sender).Error; err != nil {
+	var room domain.Room
+	if err := r.db.First(&room, "id = ?", in.RoomId).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, domain.EntityNotFound("identity")
+			return nil, domain.EntityNotFound("room")
 		}
 		return nil, err
 	}
 
-	var recipient domain.Identity
-	if err := r.db.Where("unique_string = ?", in.ToUnique).First(&recipient).Error; err != nil {
+	var sender domain.Identity
+	if err := r.db.Where("unique_string = ?", in.FromUnique).First(&sender).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, domain.EntityNotFound("identity")
 		}
@@ -104,11 +103,11 @@ func (r *messageRepository) GetAll(opts options.MessageFetchOptions) (domain.Mul
 	)
 
 	base := r.db.Model(&domain.Message{})
+	if rcv := strings.TrimSpace(opts.RoomUniqueString); rcv != "" {
+		base = base.Joins("JOIN rooms ON rooms.id = messages.room_id").Where("rooms.unique_string = ?", rcv)
+	}
 	if s := strings.TrimSpace(opts.SenderUniqueString); s != "" {
 		base = base.Where("from_unique = ?", s)
-	}
-	if rcv := strings.TrimSpace(opts.RoomUniqueString); rcv != "" {
-		base = base.Where("to_unique = ?", rcv)
 	}
 
 	if err := base.Count(&total).Error; err != nil {
@@ -151,16 +150,16 @@ func sanitizeMessageSortField(in string) string {
 	key := strings.TrimSpace(strings.ToLower(in))
 	switch key {
 	case "id":
-		return "id"
+		return "messages.id"
+	case "room_id":
+		return "messages.room_id"
 	case "from_unique":
-		return "from_unique"
-	case "to_unique":
-		return "to_unique"
+		return "messages.from_unique"
 	case "updated_at":
-		return "updated_at"
+		return "messages.updated_at"
 	case "created_at", "":
 		fallthrough
 	default:
-		return "created_at"
+		return "messages.created_at"
 	}
 }

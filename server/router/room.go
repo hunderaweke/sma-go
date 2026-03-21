@@ -6,10 +6,16 @@ import (
 	"github.com/hunderaweke/sma-go/server/middlewares"
 )
 
-func registerRoomRoutes(r *fiber.App, ctrl *controller.RoomController) {
-	roomRoutes := r.Group("/rooms", middlewares.JWTMiddleware)
-	roomRoutes.Post("", ctrl.Create)
-	roomRoutes.Get("", ctrl.ListMine)
-	roomRoutes.Get("/:uniqueString", ctrl.GetByUniqueString)
-	roomRoutes.Delete("/:uniqueString", ctrl.Delete)
+func registerRoomRoutes(r *fiber.App, roomCtrl *controller.RoomController, messageCtrl *controller.MessageController) {
+	roomRoutes := r.Group("/rooms")
+	roomRoutes.Post("", middlewares.JWTMiddleware, roomCtrl.Create)
+	roomRoutes.Get("", middlewares.JWTMiddleware, roomCtrl.ListMine)
+	roomRoutes.Get("/:uniqueString", middlewares.JWTMiddleware, roomCtrl.GetByUniqueString)
+	roomRoutes.Delete("/:uniqueString", middlewares.JWTMiddleware, roomCtrl.Delete)
+
+	messageRoutes := roomRoutes.Group("/:uniqueString/messages")
+	messageRoutes.Post("", messageCtrl.CreateInRoom)
+	messageRoutes.Get("", middlewares.JWTMiddleware, messageCtrl.ListInRoom)
+	messageRoutes.Get("/:id", middlewares.JWTMiddleware, messageCtrl.GetByIDInRoom)
+	messageRoutes.Delete("/:id", middlewares.JWTMiddleware, messageCtrl.DeleteInRoom)
 }

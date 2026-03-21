@@ -17,16 +17,15 @@ func NewRouter(identityUC domain.IdentityUsecase, messageUC domain.MessageUsecas
 	app.Use(recover.New())
 
 	identityCtrl := controller.NewIdentityController(identityUC, utils.NewPGPHandler())
-	messageCtrl := controller.NewMessageController(messageUC)
 	analyticsCtrl := controller.NewAnalyticsController(analyticsUC)
 	authCtrl := controller.NewAuthController(userUC)
 	roomCtrl := controller.NewRoomController(roomUC, userUC)
+	messageCtrl := controller.NewMessageController(messageUC, roomUC, userUC)
 
 	registerIdentityRoutes(app, identityCtrl)
-	registerMessageRoutes(app, messageCtrl)
 	registerAnalyticsRoutes(app, analyticsCtrl)
 	registerAuthRoutes(app, authCtrl)
-	registerRoomRoutes(app, roomCtrl)
+	registerRoomRoutes(app, roomCtrl, messageCtrl)
 
 	return app
 }
