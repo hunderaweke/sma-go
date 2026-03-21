@@ -7,7 +7,6 @@ import (
 
 type Room struct {
 	Model
-	Name         string    `json:"name,omitempty"`
 	UniqueString string    `json:"unique_string,omitempty" gorm:"not null;uniqueIndex"`
 	OwnerID      uuid.UUID `json:"owner_id,omitempty" gorm:"not null"`
 	Owner        User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:SET NULL,OnDelete:SET NULL" json:"-"`

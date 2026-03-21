@@ -16,8 +16,6 @@ func NewRoomUsecase(repo domain.RoomRepository) domain.RoomUsecase {
 }
 
 func (u *roomUsecase) Create(in domain.Room) (*domain.Room, error) {
-	in.Name = strings.TrimSpace(in.Name)
-	in.UniqueString = strings.TrimSpace(in.UniqueString)
 	return u.repo.Create(in)
 }
 

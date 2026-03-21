@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/base64"
 	"strings"
 
 	"github.com/google/uuid"
@@ -19,12 +20,6 @@ func NewRoomRepository(db *gorm.DB) domain.RoomRepository {
 }
 
 func (r *roomRepository) Create(in domain.Room) (*domain.Room, error) {
-	in.Name = strings.TrimSpace(in.Name)
-	in.UniqueString = strings.TrimSpace(in.UniqueString)
-
-	if in.UniqueString == "" {
-		return nil, domain.RequiredField("unique_string")
-	}
 	if in.OwnerID == uuid.Nil {
 		return nil, domain.RequiredField("owner_id")
 	}
@@ -40,6 +35,10 @@ func (r *roomRepository) Create(in domain.Room) (*domain.Room, error) {
 	}
 
 	if err := r.db.Create(&in).Error; err != nil {
+		return nil, err
+	}
+	in.UniqueString = base64.RawURLEncoding.EncodeToString(in.ID[:])[:12]
+	if err := r.db.Save(&in).Error; err != nil {
 		return nil, err
 	}
 	return &in, nil

@@ -5,9 +5,12 @@ go 1.24.2
 require (
 	github.com/ProtonMail/gopenpgp/v3 v3.3.0
 	github.com/gofiber/fiber/v2 v2.52.12
+	github.com/gofiber/storage/sqlite3 v1.3.8
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
+	github.com/markbates/goth v1.82.0
+	github.com/shareed2k/goth_fiber v0.3.3
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/fasthttp v1.69.0
 	gorm.io/driver/postgres v1.6.0
@@ -24,7 +27,6 @@ require (
 	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-chi/chi/v5 v5.2.2 // indirect
-	github.com/gofiber/storage/sqlite3 v1.3.8 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
@@ -36,15 +38,13 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.18.2 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
-	github.com/markbates/goth v1.82.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/shareed2k/goth_fiber v0.3.3 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	golang.org/x/crypto v0.46.0 // indirect
 	golang.org/x/oauth2 v0.27.0 // indirect
