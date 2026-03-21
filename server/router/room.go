@@ -7,16 +7,16 @@ import (
 )
 
 func registerRoomRoutes(r *fiber.App, roomCtrl *controller.RoomController, messageCtrl *controller.MessageController) {
-	roomRoutes := r.Group("/rooms", middlewares.JWTMiddleware)
-	roomRoutes.Post("", roomCtrl.Create)
-	roomRoutes.Get("", roomCtrl.ListMine)
-	roomRoutes.Get("/:uniqueString", roomCtrl.GetByUniqueString)
-	roomRoutes.Delete("/:uniqueString", roomCtrl.Delete)
+	roomRoutes := r.Group("/rooms")
+	roomRoutes.Post("", middlewares.JWTMiddleware, roomCtrl.Create)
+	roomRoutes.Get("", middlewares.JWTMiddleware, roomCtrl.ListMine)
+	roomRoutes.Get("/:uniqueString", middlewares.JWTMiddleware, roomCtrl.GetByUniqueString)
+	roomRoutes.Delete("/:uniqueString", middlewares.JWTMiddleware, roomCtrl.Delete)
 
 	messageRoutes := roomRoutes.Group("/:uniqueString/messages")
 	messageRoutes.Post("", messageCtrl.CreateInRoom)
-	messageRoutes.Get("", messageCtrl.ListInRoom)
-	messageRoutes.Get("/receive", messageCtrl.ReceiveMessages)
-	messageRoutes.Get("/:id", messageCtrl.GetByIDInRoom)
-	messageRoutes.Delete("/:id", messageCtrl.DeleteInRoom)
+	messageRoutes.Get("", middlewares.JWTMiddleware, messageCtrl.ListInRoom)
+	messageRoutes.Get("/receive", middlewares.JWTMiddleware, messageCtrl.ReceiveMessages)
+	messageRoutes.Get("/:id", middlewares.JWTMiddleware, messageCtrl.GetByIDInRoom)
+	messageRoutes.Delete("/:id", middlewares.JWTMiddleware, messageCtrl.DeleteInRoom)
 }

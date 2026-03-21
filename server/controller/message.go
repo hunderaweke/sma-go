@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
@@ -52,11 +53,10 @@ func (mc *MessageController) sendToClient(roomUniqueString, msg string) {
 }
 
 func (mc *MessageController) CreateInRoom(c *fiber.Ctx) error {
-	room, err := mc.authorizedRoom(c)
+	room, err := mc.roomUsecase.GetByUniqueString(c.Params("uniqueString"))
 	if err != nil {
 		return writeDomainError(c, err)
 	}
-
 	var req createMessage
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -66,7 +66,11 @@ func (mc *MessageController) CreateInRoom(c *fiber.Ctx) error {
 	if err != nil {
 		return writeDomainError(c, err)
 	}
-	mc.sendToClient(room.UniqueString, msg.Text)
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	mc.sendToClient(room.UniqueString, string(data))
 	return c.Status(fiber.StatusCreated).JSON(msg)
 }
 
