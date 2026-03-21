@@ -16,8 +16,11 @@ func JWTMiddleware(c *fiber.Ctx) error {
 		tokenString = header
 	}
 	if tokenString == "" {
-		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header"})
-		return nil
+		tokenString = c.Cookies("access_token", "")
+		if tokenString == "" {
+			c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header"})
+			return nil
+		}
 	}
 	claims, err := services.ValidateToken(tokenString)
 	if err != nil {

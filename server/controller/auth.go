@@ -89,7 +89,7 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    accessToken,
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 		Expires:  time.Now().Add(15 * time.Hour),
 	})
@@ -121,7 +121,7 @@ func (uc *AuthController) Logout(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    "",
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 		Expires:  time.Now().Add(-time.Hour),
 	})
