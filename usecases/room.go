@@ -31,6 +31,10 @@ func (u *roomUsecase) GetByUniqueString(uniqueString string) (*domain.Room, erro
 	return u.repo.GetByUniqueString(strings.TrimSpace(uniqueString))
 }
 
+func (u *roomUsecase) UpdateName(id string, name string) (*domain.Room, error) {
+	return u.repo.UpdateName(strings.TrimSpace(id), strings.TrimSpace(name))
+}
+
 func (u *roomUsecase) GetByOwnerId(ownerId string, opts options.BaseFetchOptions) (domain.MultipleRoom, error) {
 	return u.repo.GetByOwnerId(strings.TrimSpace(ownerId), opts)
 }

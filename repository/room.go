@@ -38,6 +38,9 @@ func (r *roomRepository) Create(in domain.Room) (*domain.Room, error) {
 		return nil, err
 	}
 	in.UniqueString = base64.RawURLEncoding.EncodeToString(in.ID[:])[:12]
+	if in.Name == "" {
+		in.Name = in.UniqueString
+	}
 	if err := r.db.Save(&in).Error; err != nil {
 		return nil, err
 	}
@@ -62,6 +65,25 @@ func (r *roomRepository) Delete(id string) error {
 
 func (r *roomRepository) GetByID(id string) (*domain.Room, error) {
 	return r.GetByUniqueString(id)
+}
+
+func (r *roomRepository) UpdateName(id string, name string) (*domain.Room, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, domain.RequiredField("unique_string")
+	}
+
+	room, err := r.GetByUniqueString(id)
+	if err != nil {
+		return nil, err
+	}
+
+	room.Name = name
+	if err := r.db.Save(room).Error; err != nil {
+		return nil, err
+	}
+
+	return room, nil
 }
 
 func (r *roomRepository) GetByUniqueString(uniqueString string) (*domain.Room, error) {

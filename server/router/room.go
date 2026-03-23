@@ -11,6 +11,7 @@ func registerRoomRoutes(r *fiber.App, roomCtrl *controller.RoomController, messa
 	roomRoutes.Post("", middlewares.JWTMiddleware, roomCtrl.Create)
 	roomRoutes.Get("", middlewares.JWTMiddleware, roomCtrl.ListMine)
 	roomRoutes.Get("/:uniqueString", middlewares.JWTMiddleware, roomCtrl.GetByUniqueString)
+	roomRoutes.Put("/:uniqueString/name", middlewares.JWTMiddleware, roomCtrl.UpdateName)
 	roomRoutes.Delete("/:uniqueString", middlewares.JWTMiddleware, roomCtrl.Delete)
 
 	messageRoutes := roomRoutes.Group("/:uniqueString/messages")

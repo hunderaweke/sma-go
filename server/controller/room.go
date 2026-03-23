@@ -59,6 +59,30 @@ func (rc *RoomController) GetByUniqueString(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(room)
 }
 
+func (rc *RoomController) UpdateName(c *fiber.Ctx) error {
+	room, err := rc.roomUsecase.GetByUniqueString(c.Params("uniqueString"))
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+	if err := rc.ensureOwner(c, room); err != nil {
+		return writeDomainError(c, err)
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	updatedRoom, err := rc.roomUsecase.UpdateName(c.Params("uniqueString"), req.Name)
+	if err != nil {
+		return writeDomainError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(updatedRoom)
+}
+
 func (rc *RoomController) Delete(c *fiber.Ctx) error {
 	room, err := rc.roomUsecase.GetByUniqueString(c.Params("uniqueString"))
 	if err != nil {
