@@ -149,15 +149,17 @@ func (mc *MessageController) ReceiveMessages(c *fiber.Ctx) error {
 						return
 					}
 					log.Printf("error while flushing: %v", err)
+					mc.removeClient(room.UniqueString)
 					return
 				}
 			case <-ticker.C:
-				fmt.Fprint(w, "heartbeat\n\n")
+				fmt.Fprint(w, "event: ping\n\n")
 				if err := w.Flush(); err != nil {
 					if err == fasthttp.ErrConnectionClosed {
 						return
 					}
-					log.Printf("error while flushing heartbeat: %v", err)
+					log.Printf("error while flushing ping: %v", err)
+					mc.removeClient(room.UniqueString)
 					return
 				}
 			}

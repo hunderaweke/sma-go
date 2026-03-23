@@ -25,6 +25,6 @@ func (u *messageUsecase) GetByID(id string) (*domain.Message, error) {
 	return u.repo.GetByID(id)
 }
 
-func (u *messageUsecase) GetAll(opts options.MessageFetchOptions) (domain.MultipleMessage, error) {
+func (u *messageUsecase) GetAll(opts options.MessageFetchOptions) ([]domain.Message, error) {
 	return u.repo.GetAll(opts)
 }

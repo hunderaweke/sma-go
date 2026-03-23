@@ -96,11 +96,8 @@ func (r *messageRepository) GetByID(id string) (*domain.Message, error) {
 	return &m, nil
 }
 
-func (r *messageRepository) GetAll(opts options.MessageFetchOptions) (domain.MultipleMessage, error) {
-	var (
-		items []domain.Message
-		total int64
-	)
+func (r *messageRepository) GetAll(opts options.MessageFetchOptions) ([]domain.Message, error) {
+	var items []domain.Message
 
 	base := r.db.Model(&domain.Message{})
 	if rcv := strings.TrimSpace(opts.RoomUniqueString); rcv != "" {
@@ -110,56 +107,10 @@ func (r *messageRepository) GetAll(opts options.MessageFetchOptions) (domain.Mul
 		base = base.Where("from_unique = ?", s)
 	}
 
-	if err := base.Count(&total).Error; err != nil {
-		return domain.MultipleMessage{}, err
-	}
-
-	sortField := sanitizeMessageSortField(opts.SortBy)
-	sortDir := "ASC"
-	if opts.SortDesc {
-		sortDir = "DESC"
-	}
-	order := sortField + " " + sortDir
-
-	q := base.Order(order).Limit(opts.Limit()).Offset(opts.Offset())
+	q := base.Order("messages.created_at DESC").Limit(opts.Limit()).Offset(opts.Offset())
 	if err := q.Find(&items).Error; err != nil {
-		return domain.MultipleMessage{}, err
+		return nil, err
 	}
 
-	page := opts.GetPage()
-	size := opts.GetPageSize()
-	totalPages := 0
-	if size > 0 {
-		totalPages = int((total + int64(size) - 1) / int64(size))
-	}
-	meta := domain.Pagination{
-		Page:       page,
-		PageSize:   size,
-		Total:      total,
-		TotalPages: totalPages,
-		HasNext:    page < totalPages,
-		HasPrev:    page > 1,
-		SortBy:     sortField,
-		SortDesc:   opts.SortDesc,
-	}
-
-	return domain.MultipleMessage{Meta: meta, Data: items}, nil
-}
-
-func sanitizeMessageSortField(in string) string {
-	key := strings.TrimSpace(strings.ToLower(in))
-	switch key {
-	case "id":
-		return "messages.id"
-	case "room_id":
-		return "messages.room_id"
-	case "from_unique":
-		return "messages.from_unique"
-	case "updated_at":
-		return "messages.updated_at"
-	case "created_at", "":
-		fallthrough
-	default:
-		return "messages.created_at"
-	}
+	return items, nil
 }

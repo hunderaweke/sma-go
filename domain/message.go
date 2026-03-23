@@ -13,21 +13,16 @@ type Message struct {
 	Text       string    `gorm:"type:text;not null" json:"text,omitempty"`
 }
 
-type MultipleMessage struct {
-	Meta Pagination `json:"meta,omitempty"`
-	Data []Message  `json:"data,omitempty"`
-}
-
 type MessageRepository interface {
 	Create(Message) (*Message, error)
 	Delete(id string) error
 	GetByID(id string) (*Message, error)
-	GetAll(opts options.MessageFetchOptions) (MultipleMessage, error)
+	GetAll(opts options.MessageFetchOptions) ([]Message, error)
 }
 
 type MessageUsecase interface {
 	Create(Message) (*Message, error)
 	Delete(id string) error
 	GetByID(id string) (*Message, error)
-	GetAll(opts options.MessageFetchOptions) (MultipleMessage, error)
+	GetAll(opts options.MessageFetchOptions) ([]Message, error)
 }
