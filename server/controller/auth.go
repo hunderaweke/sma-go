@@ -2,6 +2,8 @@ package controller
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -28,7 +30,7 @@ func (c *AuthController) configureAuth() {
 			config.GitHubClientSecret,
 			config.GitHubCallbackURL,
 			"user:email",
-			"user:profile",
+			"read:user",
 		),
 		google.New(
 			config.GoogleClientID,
@@ -66,13 +68,18 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusExpectationFailed)
 	}
+	log.Printf("Authenticated user: (%+v)", user)
 	dbUser, err := uc.usecase.GetByEmail(user.Email)
 	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
 		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusConflict)
 	}
 	if dbUser == nil {
+		name := user.Name
+		if name == "" {
+			name = strings.Split(user.Email, "@")[0]
+		}
 		dbUser, err = uc.usecase.Create(domain.User{
-			Name:           user.Name,
+			Name:           name,
 			Provider:       user.Provider,
 			ProviderUserID: user.UserID,
 			Email:          user.Email,
