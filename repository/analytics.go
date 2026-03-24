@@ -18,7 +18,9 @@ func (r *analyticsRepo) Get() (*domain.Analytics, error) {
 	query := `
 		SELECT
 			(SELECT COUNT(*) FROM identities) AS identities,
-			(SELECT COUNT(*) FROM messages)   AS messages;
+			(SELECT COUNT(*) FROM messages)   AS messages,
+			(SELECT COUNT(*) FROM users)      AS users,
+			(SELECT COUNT(*) FROM rooms)      AS rooms;
 	`
 	if err := r.db.Raw(query).Scan(&a).Error; err != nil {
 		return nil, err
