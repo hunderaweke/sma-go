@@ -68,9 +68,9 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusExpectationFailed)
 	}
-	log.Printf("Authenticated user: (%+v)", user)
 	dbUser, err := uc.usecase.GetByEmail(user.Email)
 	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
+		log.Println("Email registered with different provider:", user.Email, user.Provider)
 		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusConflict)
 	}
 	if dbUser == nil {

@@ -14,6 +14,11 @@ type roomRepository struct {
 	db *gorm.DB
 }
 
+type roomWithMessagesCount struct {
+	domain.Room
+	MessagesCnt int `gorm:"column:messages_cnt"`
+}
+
 func NewRoomRepository(db *gorm.DB) domain.RoomRepository {
 	db.AutoMigrate(&domain.Room{})
 	return &roomRepository{db: db}
@@ -91,14 +96,15 @@ func (r *roomRepository) GetByUniqueString(uniqueString string) (*domain.Room, e
 	if uniqueString == "" {
 		return nil, domain.RequiredField("unique_string")
 	}
-	var room domain.Room
-	if err := r.db.Where("unique_string = ?", uniqueString).First(&room).Error; err != nil {
+	var row roomWithMessagesCount
+	if err := roomQuery(r.db).Where("unique_string = ?", uniqueString).First(&row).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, domain.EntityNotFound("room")
 		}
 		return nil, err
 	}
-	return &room, nil
+	row.Room.MessagesCnt = row.MessagesCnt
+	return &row.Room, nil
 }
 
 func (r *roomRepository) GetByOwnerId(ownerId string, opts options.BaseFetchOptions) (domain.MultipleRoom, error) {
@@ -128,9 +134,16 @@ func (r *roomRepository) GetByOwnerId(ownerId string, opts options.BaseFetchOpti
 	}
 	order := sortField + " " + sortDir
 
-	q := r.db.Model(&domain.Room{}).Where("owner_id = ?", uid).Order(order).Limit(opts.Limit()).Offset(opts.Offset())
-	if err := q.Find(&items).Error; err != nil {
+	var rows []roomWithMessagesCount
+	q := roomQuery(r.db).Where("owner_id = ?", uid).Order(order).Limit(opts.Limit()).Offset(opts.Offset())
+	if err := q.Find(&rows).Error; err != nil {
 		return domain.MultipleRoom{}, err
+	}
+
+	items = make([]domain.Room, 0, len(rows))
+	for _, row := range rows {
+		row.Room.MessagesCnt = row.MessagesCnt
+		items = append(items, row.Room)
 	}
 
 	page := opts.GetPage()
@@ -151,6 +164,11 @@ func (r *roomRepository) GetByOwnerId(ownerId string, opts options.BaseFetchOpti
 	}
 
 	return domain.MultipleRoom{Meta: meta, Data: items}, nil
+}
+
+func roomQuery(db *gorm.DB) *gorm.DB {
+	return db.Model(&domain.Room{}).
+		Select("rooms.*, (SELECT count(id) FROM messages WHERE messages.room_id = rooms.id) as messages_cnt")
 }
 
 func sanitizeRoomSortField(in string) string {

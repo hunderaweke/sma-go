@@ -11,6 +11,7 @@ type Room struct {
 	Name         string    `json:"name,omitempty" gorm:"not null"`
 	OwnerID      uuid.UUID `json:"owner_id,omitempty" gorm:"not null"`
 	Owner        User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:SET NULL,OnDelete:SET NULL" json:"-"`
+	MessagesCnt  int       `json:"messages_cnt" gorm:"-"`
 }
 
 type MultipleRoom struct {
