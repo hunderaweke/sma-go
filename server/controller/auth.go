@@ -43,7 +43,7 @@ func (c *AuthController) configureAuth() {
 	store := session.New(session.Config{
 		Expiration:     24 * time.Hour,
 		KeyLookup:      "cookie:session_id",
-		CookieSecure:   false,
+		CookieSecure:   true,
 		CookieHTTPOnly: true,
 		CookieSameSite: "Lax",
 		KeyGenerator:   utils.UUIDv4,
