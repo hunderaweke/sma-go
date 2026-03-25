@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -66,12 +65,12 @@ func (uc *AuthController) SignUpOrLogIn(c *fiber.Ctx) error {
 func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
-		return c.Redirect(fmt.Sprintf("%s?error=authentication_failed", config.WebUrl), fiber.StatusExpectationFailed)
+		return c.Redirect(frontendURL("?error=authentication_failed"), fiber.StatusFound)
 	}
 	dbUser, err := uc.usecase.GetByEmail(user.Email)
 	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
 		log.Println("Email registered with different provider:", user.Email, user.Provider)
-		return c.Redirect(fmt.Sprintf("%s?error=email_registered_with_different_provider", config.WebUrl), fiber.StatusConflict)
+		return c.Redirect(frontendURL("?error=email_registered_with_different_provider"), fiber.StatusFound)
 	}
 	if dbUser == nil {
 		name := user.Name
@@ -100,7 +99,12 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 		SameSite: "Lax",
 		Expires:  time.Now().Add(15 * time.Hour),
 	})
-	return c.Redirect(config.WebUrl, fiber.StatusFound)
+	return c.Redirect(frontendURL(""), fiber.StatusFound)
+}
+
+func frontendURL(query string) string {
+	base := strings.TrimRight(config.WebUrl, "/")
+	return base + query
 }
 
 func (uc *AuthController) GetMe(c *fiber.Ctx) error {
