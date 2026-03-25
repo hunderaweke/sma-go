@@ -65,6 +65,7 @@ func (uc *AuthController) SignUpOrLogIn(c *fiber.Ctx) error {
 func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
+		log.Printf("Authentication failed: %v", err)
 		return c.Redirect(frontendURL("?error=authentication_failed"), fiber.StatusFound)
 	}
 	dbUser, err := uc.usecase.GetByEmail(user.Email)

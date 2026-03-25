@@ -16,7 +16,7 @@ import (
 
 func main() {
 	// Ensure .env exists for local setup convenience
-	db, err := database.NewDB(database.Postgres)
+	db, err := database.NewDB(database.SQLite)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
