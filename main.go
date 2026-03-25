@@ -12,11 +12,20 @@ import (
 	"github.com/hunderaweke/sma-go/repository"
 	"github.com/hunderaweke/sma-go/server/router"
 	"github.com/hunderaweke/sma-go/usecases"
+	"gorm.io/gorm"
 )
 
 func main() {
 	// Ensure .env exists for local setup convenience
-	db, err := database.NewDB(database.SQLite)
+	var db *gorm.DB
+	var err error
+	if config.DBType == "postgres" {
+		log.Println("Using PostgreSQL database")
+		db, err = database.NewDB(database.Postgres)
+	} else {
+		log.Println("Using SQLite database")
+		db, err = database.NewDB(database.SQLite)
+	}
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

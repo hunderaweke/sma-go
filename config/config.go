@@ -13,6 +13,7 @@ var (
 	DBUsername         = os.Getenv("DB_USERNAME")
 	DBPassword         = os.Getenv("DB_PASSWORD")
 	DBHost             = os.Getenv("DB_HOST")
+	DBType             = os.Getenv("DB_TYPE")
 	WebUrl             = os.Getenv("WEB_URL")
 	ServerPort         = os.Getenv("SERVER_PORT")
 	GitHubClientID     = os.Getenv("GITHUB_CLIENT_ID")
