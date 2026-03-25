@@ -9,7 +9,7 @@ import (
 )
 
 func buildDSN(host, user, password, dbname, port string) string {
-	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, port)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=allow", host, user, password, dbname, port)
 }
 func NewPostgresConn() (*gorm.DB, error) {
 	dsn := buildDSN(config.DBHost, config.DBUsername, config.DBPassword, config.DBName, config.DBPort)
