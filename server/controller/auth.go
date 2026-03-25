@@ -45,7 +45,7 @@ func (c *AuthController) configureAuth() {
 		KeyLookup:      "cookie:session_id",
 		CookieSecure:   true,
 		CookieHTTPOnly: true,
-		CookieSameSite: "Lax",
+		CookieSameSite: "None",
 		KeyGenerator:   utils.UUIDv4,
 		Storage:        sqlite3.New(sqlite3.Config{Database: "./session.db"}),
 	})
