@@ -59,18 +59,47 @@ func NewAuthController(uc domain.UserUsecase) *AuthController {
 }
 
 func (uc *AuthController) SignUpOrLogIn(c *fiber.Ctx) error {
+	log.Printf("oauth start method=%s path=%s provider=%s host=%s referer=%s user_agent=%s session_id_present=%t session_id_len=%d",
+		c.Method(),
+		c.OriginalURL(),
+		c.Params("provider"),
+		c.Hostname(),
+		c.Get("Referer"),
+		c.Get("User-Agent"),
+		c.Cookies("session_id") != "",
+		len(c.Cookies("session_id")),
+	)
 	return goth_fiber.BeginAuthHandler(c)
 }
 
 func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
+	log.Printf("oauth callback method=%s path=%s provider=%s host=%s referer=%s user_agent=%s session_id_present=%t session_id_len=%d query_error=%s query_code=%s",
+		c.Method(),
+		c.OriginalURL(),
+		c.Params("provider"),
+		c.Hostname(),
+		c.Get("Referer"),
+		c.Get("User-Agent"),
+		c.Cookies("session_id") != "",
+		len(c.Cookies("session_id")),
+		c.Query("error"),
+		c.Query("code"),
+	)
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
-		log.Printf("Authentication failed: %v", err)
+		log.Printf("authentication failed provider=%s path=%s error=%v session_id_present=%t session_id_len=%d",
+			c.Params("provider"),
+			c.OriginalURL(),
+			err,
+			c.Cookies("session_id") != "",
+			len(c.Cookies("session_id")),
+		)
 		return c.Redirect(frontendURL("?error=authentication_failed"), fiber.StatusFound)
 	}
+	log.Printf("oauth user resolved provider=%s email=%s user_id=%s name=%s", user.Provider, user.Email, user.UserID, user.Name)
 	dbUser, err := uc.usecase.GetByEmail(user.Email)
 	if dbUser != nil && (dbUser.Provider != user.Provider || dbUser.ProviderUserID != user.UserID) {
-		log.Println("Email registered with different provider:", user.Email, user.Provider)
+		log.Printf("email registered with different provider email=%s provider=%s existing_provider=%s existing_provider_user_id=%s", user.Email, user.Provider, dbUser.Provider, dbUser.ProviderUserID)
 		return c.Redirect(frontendURL("?error=email_registered_with_different_provider"), fiber.StatusFound)
 	}
 	if dbUser == nil {
@@ -78,6 +107,7 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 		if name == "" {
 			name = strings.Split(user.Email, "@")[0]
 		}
+		log.Printf("creating user from oauth email=%s provider=%s provider_user_id=%s name=%s", user.Email, user.Provider, user.UserID, name)
 		dbUser, err = uc.usecase.Create(domain.User{
 			Name:           name,
 			Provider:       user.Provider,
@@ -85,13 +115,16 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 			Email:          user.Email,
 		})
 		if err != nil {
+			log.Printf("failed creating oauth user email=%s provider=%s provider_user_id=%s error=%v", user.Email, user.Provider, user.UserID, err)
 			return writeDomainError(c, err)
 		}
 	}
 	accessToken, err := services.CreateAccessToken(dbUser.ID.String(), dbUser.Email)
 	if err != nil {
+		log.Printf("failed creating access token user_id=%s email=%s error=%v", dbUser.ID.String(), dbUser.Email, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token"})
 	}
+	log.Printf("oauth success user_id=%s email=%s redirect_to=%s", dbUser.ID.String(), dbUser.Email, frontendURL(""))
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    accessToken,
