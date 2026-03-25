@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -40,7 +41,9 @@ func main() {
 		AllowOrigins: config.WebUrl,
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
-	if err := app.Listen(":3000"); err != nil {
+	address := fmt.Sprintf(":%s", config.ServerPort)
+	log.Printf("Server is running on %s", address)
+	if err := app.Listen(address); err != nil {
 		log.Fatalf("server stopped: %v", err)
 	}
 }

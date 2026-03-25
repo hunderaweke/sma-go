@@ -14,6 +14,7 @@ var (
 	DBPassword         = os.Getenv("DB_PASSWORD")
 	DBHost             = os.Getenv("DB_HOST")
 	WebUrl             = os.Getenv("WEB_URL")
+	ServerPort         = os.Getenv("SERVER_PORT")
 	GitHubClientID     = os.Getenv("GITHUB_CLIENT_ID")
 	GitHubClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
 	GoogleClientID     = os.Getenv("GOOGLE_CLIENT_ID")
@@ -29,6 +30,7 @@ func GenerateSampleEnv(fileName string) error {
 		"DB_PASSWORD": "your_db_password",
 		"DB_USERNAME": "your_db_username",
 		"DB_HOST":     "your_db_host",
+		"SERVER_PORT": "3001",
 	}
 	data, err := godotenv.Marshal(sampleEnv)
 	if err != nil {
