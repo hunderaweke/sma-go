@@ -125,17 +125,9 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 		log.Printf("failed creating access token user_id=%s email=%s error=%v", dbUser.ID.String(), dbUser.Email, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token"})
 	}
-	log.Printf("oauth success user_id=%s email=%s redirect_to=%s", dbUser.ID.String(), dbUser.Email, frontendURL(""))
-	c.Cookie(&fiber.Cookie{
-		Name:     "access_token",
-		Path:     "/",
-		Value:    accessToken,
-		HTTPOnly: true,
-		Secure:   config.Env == config.Production,
-		SameSite: fiber.CookieSameSiteNoneMode,
-		Expires:  time.Now().Add(15 * time.Hour),
-	})
-	return c.Redirect(frontendURL(""), fiber.StatusFound)
+	redirectURL := frontendURL("?token=" + accessToken)
+	log.Printf("oauth success user_id=%s email=%s redirect_to=%s", dbUser.ID.String(), dbUser.Email, redirectURL)
+	return c.Redirect(redirectURL, fiber.StatusFound)
 }
 
 func frontendURL(query string) string {
@@ -162,16 +154,5 @@ func (uc *AuthController) Logout(c *fiber.Ctx) error {
 	if err := session.Destroy(); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to destroy session"})
 	}
-	c.ClearCookie("session_id")
-	c.ClearCookie("access_token")
-	c.Cookie(&fiber.Cookie{
-		Name:     "access_token",
-		Value:    "",
-		HTTPOnly: true,
-		Path:     "/",
-		Secure:   config.Env == config.Production,
-		SameSite: fiber.CookieSameSiteNoneMode,
-		Expires:  time.Now().Add(-time.Hour),
-	})
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logged out successfully"})
 }
