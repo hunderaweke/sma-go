@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/hunderaweke/sma-go/config"
 	_ "github.com/hunderaweke/sma-go/config"
@@ -46,7 +47,7 @@ func main() {
 	userUC := usecases.NewUserUsecase(userRepo)
 	roomUC := usecases.NewRoomUsecase(roomRepo)
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
-	app := router.NewRouter(identityUC, messageUC, analyticsUC, userUC, roomUC)
+	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     getFrontendOrigin(),
 		AllowCredentials: true,
@@ -54,6 +55,7 @@ func main() {
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS, HEAD",
 		ExposeHeaders:    "Set-Cookie",
 	}))
+	app = router.NewRouter(app, identityUC, messageUC, analyticsUC, userUC, roomUC)
 	address := fmt.Sprintf(":%s", config.ServerPort)
 	log.Printf("Server is running on %s", address)
 	if err := app.Listen(address); err != nil {

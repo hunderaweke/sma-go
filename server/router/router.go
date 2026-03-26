@@ -8,8 +8,7 @@ import (
 	"github.com/hunderaweke/sma-go/server/controller"
 )
 
-func NewRouter(identityUC domain.IdentityUsecase, messageUC domain.MessageUsecase, analyticsUC domain.AnalyticsUsecase, userUC domain.UserUsecase, roomUC domain.RoomUsecase) *fiber.App {
-	app := fiber.New()
+func NewRouter(app *fiber.App, identityUC domain.IdentityUsecase, messageUC domain.MessageUsecase, analyticsUC domain.AnalyticsUsecase, userUC domain.UserUsecase, roomUC domain.RoomUsecase) *fiber.App {
 
 	// Middleware
 	app.Use(logger.New())
