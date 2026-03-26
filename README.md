@@ -25,6 +25,7 @@ Secure messaging service in Go. Identities are keyed by a human-friendly UniqueS
 
    - Copy `.env.sample` to `.env` and set:
      - `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `DB_PORT`
+  - If production splits the frontend and API across subdomains, set `SESSION_COOKIE_DOMAIN` to the shared parent domain, for example `.example.com`.
 
 3. Install and run (Windows, PowerShell)
    - `go mod tidy`

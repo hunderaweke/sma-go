@@ -2,6 +2,8 @@ package controller
 
 import (
 	"log"
+	"net"
+	"net/url"
 	"strings"
 	"time"
 
@@ -47,10 +49,35 @@ func (c *AuthController) configureAuth() {
 		CookieHTTPOnly: true,
 		CookieSameSite: fiber.CookieSameSiteNoneMode,
 		CookiePath:     "/",
+		CookieDomain:   resolveSessionCookieDomain(),
 		KeyGenerator:   utils.UUIDv4,
 		Storage:        sqlite3.New(sqlite3.Config{Database: "./session.db"}),
 	})
 	goth_fiber.SessionStore = store
+}
+
+func resolveSessionCookieDomain() string {
+	if domain := strings.TrimSpace(config.SessionCookieDomain); domain != "" {
+		return domain
+	}
+
+	parsedURL, err := url.Parse(config.WebUrl)
+	if err != nil {
+		return ""
+	}
+
+	host := strings.TrimSpace(parsedURL.Hostname())
+	if host == "" || host == "localhost" || net.ParseIP(host) != nil {
+		return ""
+	}
+
+	parts := strings.Split(host, ".")
+	if len(parts) < 3 {
+		return ""
+	}
+
+	rootDomain := strings.Join(parts[len(parts)-2:], ".")
+	return "." + rootDomain
 }
 
 func NewAuthController(uc domain.UserUsecase) *AuthController {
