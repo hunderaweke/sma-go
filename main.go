@@ -17,6 +17,7 @@ import (
 
 func main() {
 	// Ensure .env exists for local setup convenience
+	log.Printf("Running in %s setup\n", config.Env)
 	var db *gorm.DB
 	var err error
 	if config.DBType == "postgres" {

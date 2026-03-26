@@ -45,7 +45,8 @@ func (c *AuthController) configureAuth() {
 		KeyLookup:      "cookie:session_id",
 		CookieSecure:   config.Env == config.Production,
 		CookieHTTPOnly: true,
-		CookieSameSite: "None",
+		CookieSameSite: fiber.CookieSameSiteNoneMode,
+		CookiePath:     "/",
 		KeyGenerator:   utils.UUIDv4,
 		Storage:        sqlite3.New(sqlite3.Config{Database: "./session.db"}),
 	})
@@ -127,6 +128,7 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 	log.Printf("oauth success user_id=%s email=%s redirect_to=%s", dbUser.ID.String(), dbUser.Email, frontendURL(""))
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
+		Path:     "/",
 		Value:    accessToken,
 		HTTPOnly: true,
 		Secure:   config.Env == config.Production,
@@ -166,6 +168,7 @@ func (uc *AuthController) Logout(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    "",
 		HTTPOnly: true,
+		Path:     "/",
 		Secure:   config.Env == config.Production,
 		SameSite: fiber.CookieSameSiteNoneMode,
 		Expires:  time.Now().Add(-time.Hour),
