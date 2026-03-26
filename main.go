@@ -47,12 +47,22 @@ func main() {
 	analyticsUC := usecases.NewAnalyticsUsecase(analyticsRepo)
 	app := router.NewRouter(identityUC, messageUC, analyticsUC, userUC, roomUC)
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: config.WebUrl,
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowOrigins:     getFrontendOrigin(),
+		AllowCredentials: true,
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS, HEAD",
+		ExposeHeaders:    "Set-Cookie",
 	}))
 	address := fmt.Sprintf(":%s", config.ServerPort)
 	log.Printf("Server is running on %s", address)
 	if err := app.Listen(address); err != nil {
 		log.Fatalf("server stopped: %v", err)
 	}
+}
+func getFrontendOrigin() string {
+	if origin := config.WebUrl; origin != "" {
+		log.Println("Using frontend origin from config:", origin)
+		return origin
+	}
+	return "http://localhost:5173"
 }

@@ -7,7 +7,13 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
+const (
+	Production  = "production"
+	Development = "development"
+)
+
 var (
+	Env                = os.Getenv("ENV")
 	DBPort             = os.Getenv("DB_PORT")
 	DBName             = os.Getenv("DB_NAME")
 	DBUsername         = os.Getenv("DB_USERNAME")

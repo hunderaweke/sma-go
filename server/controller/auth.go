@@ -43,7 +43,7 @@ func (c *AuthController) configureAuth() {
 	store := session.New(session.Config{
 		Expiration:     24 * time.Hour,
 		KeyLookup:      "cookie:session_id",
-		CookieSecure:   true,
+		CookieSecure:   config.Env == config.Production,
 		CookieHTTPOnly: true,
 		CookieSameSite: "None",
 		KeyGenerator:   utils.UUIDv4,
@@ -129,8 +129,8 @@ func (uc *AuthController) AuthCallback(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    accessToken,
 		HTTPOnly: true,
-		Secure:   true,
-		SameSite: "Lax",
+		Secure:   config.Env == config.Production,
+		SameSite: fiber.CookieSameSiteNoneMode,
 		Expires:  time.Now().Add(15 * time.Hour),
 	})
 	return c.Redirect(frontendURL(""), fiber.StatusFound)
@@ -166,8 +166,8 @@ func (uc *AuthController) Logout(c *fiber.Ctx) error {
 		Name:     "access_token",
 		Value:    "",
 		HTTPOnly: true,
-		Secure:   true,
-		SameSite: "Lax",
+		Secure:   config.Env == config.Production,
+		SameSite: fiber.CookieSameSiteNoneMode,
 		Expires:  time.Now().Add(-time.Hour),
 	})
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logged out successfully"})
